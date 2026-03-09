@@ -1,0 +1,41 @@
+@startuml
+
+node "Peer Node A" {
+    component PeerClient
+    component PeerService
+    component ChatService
+    component CallService
+    component TranscriptStore
+}
+
+node "Peer Node B" {
+    component PeerClient_B as PeerClient
+    component PeerService_B as PeerService
+    component ChatService_B as ChatService
+    component CallService_B as CallService
+    component TranscriptStore_B as TranscriptStore
+}
+
+node "Manager Node" {
+    component ManagerClient
+    component ManagerService
+    component TranscriptService
+}
+
+PeerClient --> PeerService
+PeerService --> ChatService
+PeerService --> CallService
+
+ChatService --> TranscriptStore
+CallService --> TranscriptStore
+
+ManagerClient --> ManagerService
+ManagerService --> TranscriptService
+
+PeerService .. PeerService_B : P2P Messaging
+CallService .. CallService_B : Audio/Video Stream
+
+ManagerService .. PeerService : Peer Monitoring
+TranscriptService .. TranscriptStore : Fetch Logs
+
+@enduml
