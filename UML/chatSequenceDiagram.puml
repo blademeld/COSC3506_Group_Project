@@ -1,0 +1,36 @@
+@startuml
+
+actor PeerA
+actor PeerB
+actor Manager
+
+participant PeerService
+participant ChatService
+participant TranscriptStore
+participant TranscriptService
+participant ManagerService
+
+PeerA -> PeerService : sendMessage(peerB, message)
+PeerService -> ChatService : sendMessage(peerB, message)
+
+ChatService -> PeerB : deliverMessage(message)
+
+ChatService -> TranscriptStore : storeMessage(message)
+
+PeerB -> PeerService : receiveMessage()
+
+== Manager Requests Transcript ==
+
+Manager -> ManagerService : requestTranscript(peerB)
+
+ManagerService -> TranscriptService : getMessages(peerB)
+
+TranscriptService -> TranscriptStore : fetchMessages(peerB)
+
+TranscriptStore --> TranscriptService : messageList
+
+TranscriptService --> ManagerService : messageList
+
+ManagerService --> Manager : transcript
+
+@enduml

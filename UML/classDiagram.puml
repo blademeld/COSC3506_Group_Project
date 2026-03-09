@@ -1,0 +1,105 @@
+@startuml
+
+class PeerClient {
+  - peerId: String
+  - publicKey: String
+  - username: String
+  - status: String
+  + setStatus(status)
+}
+
+class PeerService {
+  + connectToNetwork(publicKey)
+  + disconnectFromNetwork()
+  + sendMessage(peerId, message)
+  + receiveMessage()
+  + startCall(peerId)
+  + endCall()
+}
+
+class ManagerClient {
+  - privateKey: String
+  + getActivePeers()
+  + getActiveCalls()
+  + requestTranscript(peerId)
+  + requestCallLogs(peerId)
+}
+
+class ManagerService {
+  + generatePeer()
+  + validatePeer()
+  + getActivePeers()
+  + getActiveCalls()
+  + requestTranscript(peerId)
+  + requestCallLogs(peerId)
+}
+
+class Message {
+  - messageId: String
+  - senderId: String
+  - receiverId: String
+  - timestamp: Date
+  - content: String
+}
+
+class CallRecord {
+  - callId: String
+  - senderId: String
+  - receiverId: String
+  - startTime: Date
+  - endTime: Date
+}
+
+class TranscriptService {
+  + getCallRecords(peerId)
+  + getMessages(peerId)
+}
+
+class ChatService {
+  + connect(peerId)
+  + disconnect(peerId)
+  + sendMessage(peerId, message)
+  + receiveMessage(peerId, message)
+}
+
+class CallService {
+  + connect(peerId)
+  + disconnect(peerId)
+  + sendAudio()
+  + receiveAudio()
+}
+
+class TranscriptStore {
+  - messages: List
+  - callRecords: List
+}
+
+' Inheritance
+ManagerClient --|> PeerClient
+ManagerService --|> PeerService
+
+' Client-Service relationships
+PeerClient --> PeerService
+ManagerClient --> ManagerService
+
+' Peer communication
+PeerService --> ChatService
+PeerService --> CallService
+PeerService --> Message
+
+ChatService --> Message
+CallService --> CallRecord : generates
+
+' Transcript storage
+ChatService --> TranscriptStore : stores
+CallService --> TranscriptStore : stores
+
+TranscriptService --> TranscriptStore
+TranscriptStore "1" *-- "*" Message
+TranscriptStore "1" *-- "*" CallRecord
+
+' Manager monitoring
+ManagerService --> TranscriptService : fetches
+ManagerService ..> PeerClient : monitors
+
+@enduml

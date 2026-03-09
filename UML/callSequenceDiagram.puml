@@ -1,0 +1,32 @@
+@startuml
+
+actor PeerA
+actor PeerB
+
+participant PeerService
+participant CallService
+participant TranscriptStore
+
+PeerA -> PeerService : startCall(peerB)
+
+PeerService -> CallService : connect(peerB)
+
+CallService -> PeerB : callRequest
+
+PeerB -> CallService : acceptCall
+
+CallService -> PeerA : callEstablished
+CallService -> PeerB : callEstablished
+
+loop Audio/Video Stream
+PeerA -> CallService : sendAudioVideo()
+CallService -> PeerB : receiveAudioVideo()
+end
+
+PeerA -> PeerService : endCall()
+
+PeerService -> CallService : disconnect()
+
+CallService -> TranscriptStore : storeCallRecord()
+
+@enduml

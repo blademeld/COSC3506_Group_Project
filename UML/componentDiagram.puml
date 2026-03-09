@@ -1,0 +1,37 @@
+@startuml
+
+package "Client Applications" {
+    [PeerClient]
+    [ManagerClient]
+}
+
+package "Core Services" {
+    [PeerService]
+    [ManagerService]
+}
+
+package "Communication Layer" {
+    [ChatService]
+    [CallService]
+}
+
+package "Monitoring & Logs" {
+    [TranscriptService]
+    [TranscriptStore]
+}
+
+PeerClient --> PeerService
+ManagerClient --> ManagerService
+
+ManagerService --|> PeerService
+
+PeerService --> ChatService
+PeerService --> CallService
+
+ChatService --> TranscriptStore
+CallService --> TranscriptStore
+
+ManagerService --> TranscriptService
+TranscriptService --> TranscriptStore
+
+@enduml
