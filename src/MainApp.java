@@ -9,16 +9,20 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
+	private Stage primaryStage;
+
 	@Override
 	public void start(Stage stage) {
+		primaryStage = stage;
+		showConnectScene();
+	}
+
+	private void showConnectScene() {
 		Label titleLabel = new Label();
 		titleLabel.setText("PeerLink Chat");
 
 		Label subtitleLabel = new Label();
 		subtitleLabel.setText("Web3-based P2P Chat Application");
-
-		Label instructionLabel = new Label();
-		instructionLabel.setText("Host Session uses this machine's port. Connect to Peer uses the host IP address and port.");
 
 		TextField ipField = new TextField();
 		ipField.setPromptText("Host IP address (Connect only)");
@@ -32,23 +36,26 @@ public class MainApp extends Application {
 		Button connectButton = new Button();
 		connectButton.setText("Connect to Peer");
 
+		Label instructionLabel = new Label();
+		instructionLabel.setText("Host Session uses this machine's port. Connect to Peer uses the host IP address and port.");
+
 		VBox root = new VBox(10);
 		root.setAlignment(Pos.CENTER);
 		root.getChildren().addAll(
 			titleLabel,
 			subtitleLabel,
-			instructionLabel,
 			ipField,
 			portField,
 			hostButton,
-			connectButton
+			connectButton,
+			instructionLabel
 		);
 
 		Scene scene = new Scene(root, 700, 500);
 
-		stage.setTitle("PeerLink Chat");
-		stage.setScene(scene);
-		stage.show();
+		primaryStage.setTitle("PeerLink Chat");
+		primaryStage.setScene(scene);
+		primaryStage.show();
 	}
 
 	public static void main(String[] args) {
