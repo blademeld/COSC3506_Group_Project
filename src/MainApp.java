@@ -139,7 +139,8 @@ public class MainApp extends Application {
 
 	// Chat scene for hosting a session
 	public static void showHostChatScene(String portNumber) {
-		// Once networking is implemeented here, the host's IP address will be grabbed automatically and displayed in this scene. For now, we will just display the port number since the IP address is not being used yet.
+		// Once networking is implemeented , the host's IP address will be auto-grabbed and displayed here.
+		// For now, we will just display the port number.
 		HostChatView hostChatView = new HostChatView(portNumber);
 		Scene scene = hostChatView.getScene();
 		primaryStage.setTitle("PeerLink Chat - Host Chat");
