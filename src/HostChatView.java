@@ -8,17 +8,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class HostChatView
-{
+public class HostChatView {
 	private String portNumber;
 
-	public HostChatView(String portNumber)
-	{
+	public HostChatView(String portNumber) {
 		this.portNumber = portNumber;
 	}
 
-	public Scene getScene()
-	{
+	public Scene getScene() {
 		Label titleLabel = new Label();
 		titleLabel.setText("PeerLink Chat - Host Chat Window");
 		titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");

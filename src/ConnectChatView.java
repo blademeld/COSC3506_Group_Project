@@ -8,19 +8,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class ConnectChatView
-{
+public class ConnectChatView {
 	private String ipAddress;
 	private String portNumber;
 
-	public ConnectChatView(String ipAddress, String portNumber)
-	{
+	public ConnectChatView(String ipAddress, String portNumber) {
 		this.ipAddress = ipAddress;
 		this.portNumber = portNumber;
 	}
 
-	public Scene getScene()
-	{
+	public Scene getScene() {
 		Label titleLabel = new Label();
 		titleLabel.setText("PeerLink Chat - Peer Chat Window");
 		titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
