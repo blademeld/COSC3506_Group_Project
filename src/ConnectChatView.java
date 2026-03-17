@@ -28,6 +28,12 @@ public class ConnectChatView
 		Label statusLabel = new Label();
 		statusLabel.setText("Connected to peer");
 
+		Label ipLabel = new Label();
+		ipLabel.setText("Peer IP: " + ipAddress);
+
+		Label portLabel = new Label();
+		portLabel.setText("Peer Port: " + portNumber);
+
 		TextArea chatArea = new TextArea();
 		chatArea.setEditable(false);
 		chatArea.setWrapText(true);
@@ -76,6 +82,8 @@ public class ConnectChatView
 		layout.getChildren().addAll(
 				titleLabel,
 				statusLabel,
+				ipLabel,
+				portLabel,
 				chatArea,
 				inputRow,
 				backButton

@@ -26,6 +26,9 @@ public class HostChatView
 		Label statusLabel = new Label();
 		statusLabel.setText("Hosting session");
 
+		Label portLabel = new Label();
+		portLabel.setText("Listening on port: " + portNumber);
+
 		TextArea chatArea = new TextArea();
 		chatArea.setEditable(false);
 		chatArea.setWrapText(true);
@@ -46,7 +49,8 @@ public class HostChatView
 
 			// Prevent sending empty messages
 			if (text == null)
-			{return;
+			{
+				return;
 			}
 			String trimmedText = text.trim();
 			if (trimmedText.isEmpty())
@@ -73,6 +77,7 @@ public class HostChatView
 		layout.getChildren().addAll(
 				titleLabel,
 				statusLabel,
+				portLabel,
 				chatArea,
 				inputRow,
 				backButton
