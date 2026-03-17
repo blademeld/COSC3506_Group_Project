@@ -41,10 +41,6 @@ public class MainApp extends Application {
 		Button connectButton = new Button();
 		connectButton.setText("Connect to Peer");
 
-		Label instructionLabel = new Label();
-		instructionLabel.setText("Host Session uses this machine's port.\n"
-				+ "Connect to Peer uses the host IP address and port.");
-
 		Label errorLabel = new Label();
 		errorLabel.setStyle("-fx-text-fill: red;");
 
@@ -89,7 +85,6 @@ public class MainApp extends Application {
 				portField,
 				hostButton,
 				connectButton,
-				instructionLabel,
 				errorLabel
 		);
 
