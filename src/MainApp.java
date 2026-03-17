@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -44,6 +45,10 @@ public class MainApp extends Application {
 		Label errorLabel = new Label();
 		errorLabel.setStyle("-fx-text-fill: red;");
 
+		Label footerLabel = new Label();
+		footerLabel.setText("COSC3506 - Course Project (Group 3)");
+		footerLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: gray;");
+
 		hostButton.setOnAction(event -> {
 			String portNumber = portField.getText();
 			String validationError = validateHostPort(portNumber);
@@ -75,10 +80,10 @@ public class MainApp extends Application {
 			showConnectChatScene(trimmedIp, trimmedPort);
 		});
 
-		VBox root = new VBox(12);
-		root.setAlignment(Pos.CENTER);
-		root.setPadding(new Insets(20));
-		root.getChildren().addAll(
+		// Use VBox to stack the UI elements vertically in the center of the window
+		VBox centerContent = new VBox(12);
+		centerContent.setAlignment(Pos.CENTER);
+		centerContent.getChildren().addAll(
 				titleLabel,
 				subtitleLabel,
 				ipField,
@@ -87,6 +92,13 @@ public class MainApp extends Application {
 				connectButton,
 				errorLabel
 		);
+
+		// Use BorderPane to position the footer at the bottom of the window
+		BorderPane root = new BorderPane();
+		root.setPadding(new Insets(20));
+		root.setCenter(centerContent);
+		root.setBottom(footerLabel);
+		BorderPane.setAlignment(footerLabel, Pos.CENTER);
 
 		Scene scene = new Scene(root, 700, 500);
 		primaryStage.setTitle("PeerLink Chat");
@@ -134,7 +146,7 @@ public class MainApp extends Application {
 
 	// Chat scene for hosting a session
 	public static void showHostChatScene(String portNumber) {
-		// Once networking is implemeented , the host's IP address will be auto-grabbed and displayed here.
+		// Once networking is implemented , the host's IP address will be auto-grabbed and displayed here.
 		// For now, we will just display the port number.
 		HostChatView hostChatView = new HostChatView(portNumber);
 		Scene scene = hostChatView.getScene();
