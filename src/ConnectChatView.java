@@ -51,9 +51,7 @@ public class ConnectChatView
 			{
 				return;
 			}
-
 			String trimmedText = text.trim();
-
 			if (trimmedText.isEmpty())
 			{
 				return;

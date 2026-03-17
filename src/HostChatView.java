@@ -46,12 +46,9 @@ public class HostChatView
 
 			// Prevent sending empty messages
 			if (text == null)
-			{
-				return;
+			{return;
 			}
-
 			String trimmedText = text.trim();
-
 			if (trimmedText.isEmpty())
 			{
 				return;
