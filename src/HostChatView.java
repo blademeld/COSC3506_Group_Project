@@ -8,9 +8,17 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class HostChatView {
+public class HostChatView
+{
+	private String portNumber;
 
-	public Scene getScene() {
+	public HostChatView(String portNumber)
+	{
+		this.portNumber = portNumber;
+	}
+
+	public Scene getScene()
+	{
 		Label titleLabel = new Label();
 		titleLabel.setText("PeerLink Chat - Host Chat Window");
 		titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
@@ -32,17 +40,20 @@ public class HostChatView {
 		Button backButton = new Button();
 		backButton.setText("Back");
 
-		sendButton.setOnAction(event -> {
+		sendButton.setOnAction(event ->
+		{
 			String text = messageField.getText();
 
 			// Prevent sending empty messages
-			if (text == null) {
+			if (text == null)
+			{
 				return;
 			}
 
 			String trimmedText = text.trim();
 
-			if (trimmedText.isEmpty()) {
+			if (trimmedText.isEmpty())
+			{
 				return;
 			}
 
@@ -50,7 +61,8 @@ public class HostChatView {
 			messageField.clear();
 		});
 
-		backButton.setOnAction(event -> {
+		backButton.setOnAction(event ->
+		{
 			MainApp.showConnectScene();
 		});
 
@@ -62,11 +74,11 @@ public class HostChatView {
 		VBox layout = new VBox(10);
 		layout.setPadding(new Insets(15));
 		layout.getChildren().addAll(
-			titleLabel,
-			statusLabel,
-			chatArea,
-			inputRow,
-			backButton
+				titleLabel,
+				statusLabel,
+				chatArea,
+				inputRow,
+				backButton
 		);
 
 		return new Scene(layout, 700, 500);

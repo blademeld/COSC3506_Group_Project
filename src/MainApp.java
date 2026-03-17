@@ -8,19 +8,21 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class MainApp extends Application {
-
+public class MainApp extends Application
+{
 	private static Stage primaryStage;
 
 	@Override
-	public void start(Stage stage) {
+	public void start(Stage stage)
+	{
 		primaryStage = stage;
 		showConnectScene();
 		primaryStage.show();
 	}
 
 	// Main connection scene where users can choose to host a session or connect to a peer
-	public static void showConnectScene() {
+	public static void showConnectScene()
+	{
 		Label titleLabel = new Label();
 		titleLabel.setText("PeerLink Chat");
 		titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
@@ -43,54 +45,60 @@ public class MainApp extends Application {
 		connectButton.setText("Connect to Peer");
 
 		Label instructionLabel = new Label();
-		instructionLabel.setText("Host Session uses this machine's port. Connect to Peer uses the host IP address and port.");
+		instructionLabel.setText("Host Session uses this machine's port.\n"
+				+ "Connect to Peer uses the host IP address and port.");
 
-		hostButton.setOnAction(event -> {
-			showHostChatScene();
+		hostButton.setOnAction(event ->
+		{
+			String portNumber = portField.getText();
+			showHostChatScene(portNumber);
 		});
 
-		connectButton.setOnAction(event -> {
-			showConnectChatScene();
+		connectButton.setOnAction(event ->
+		{
+			String ipAddress = ipField.getText();
+			String portNumber = portField.getText();
+			showConnectChatScene(ipAddress, portNumber);
 		});
 
 		VBox root = new VBox(12);
 		root.setAlignment(Pos.CENTER);
 		root.setPadding(new Insets(20));
 		root.getChildren().addAll(
-			titleLabel,
-			subtitleLabel,
-			ipField,
-			portField,
-			hostButton,
-			connectButton,
-			instructionLabel
+				titleLabel,
+				subtitleLabel,
+				ipField,
+				portField,
+				hostButton,
+				connectButton,
+				instructionLabel
 		);
 
 		Scene scene = new Scene(root, 700, 500);
-
 		primaryStage.setTitle("PeerLink Chat");
 		primaryStage.setScene(scene);
 	}
 
 	// Chat scene for hosting a session
-	public static void showHostChatScene() {
-		HostChatView hostChatView = new HostChatView();
+	public static void showHostChatScene(String portNumber)
+	{
+		HostChatView hostChatView = new HostChatView(portNumber);
 		Scene scene = hostChatView.getScene();
-
 		primaryStage.setTitle("PeerLink Chat - Host Chat");
 		primaryStage.setScene(scene);
 	}
 
 	// Chat scene for connecting to a peer
-	public static void showConnectChatScene() {
-		ConnectChatView connectChatView = new ConnectChatView();
+	public static void showConnectChatScene(String ipAddress, String portNumber)
+	{
+		ConnectChatView connectChatView = new ConnectChatView(ipAddress, portNumber);
 		Scene scene = connectChatView.getScene();
-
 		primaryStage.setTitle("PeerLink Chat - Peer Chat");
 		primaryStage.setScene(scene);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
 		launch(args);
 	}
 }
