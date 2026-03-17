@@ -155,6 +155,7 @@ public class MainApp extends Application {
 		primaryStage.setScene(scene);
 	}
 
+	// Entry point of the application
 	public static void main(String[] args) {
 		launch(args);
 	}
