@@ -4,25 +4,23 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
-	private Stage primaryStage;
+	private static Stage primaryStage;
 
 	@Override
 	public void start(Stage stage) {
 		primaryStage = stage;
 		showConnectScene();
+		primaryStage.show();
 	}
 
 	// Main connection scene where users can choose to host a session or connect to a peer
-	private void showConnectScene() {
+	public static void showConnectScene() {
 		Label titleLabel = new Label();
 		titleLabel.setText("PeerLink Chat");
 		titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
@@ -52,7 +50,7 @@ public class MainApp extends Application {
 		});
 
 		connectButton.setOnAction(event -> {
-			showConnectToPeerChatScene();
+			showConnectChatScene();
 		});
 
 		VBox root = new VBox(12);
@@ -72,136 +70,21 @@ public class MainApp extends Application {
 
 		primaryStage.setTitle("PeerLink Chat");
 		primaryStage.setScene(scene);
-		primaryStage.show();
 	}
 
 	// Chat scene for hosting a session
-	private void showHostChatScene() {
-		Label titleLabel = new Label();
-		titleLabel.setText("PeerLink Chat - Host Chat Window");
-		titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
-
-		Label statusLabel = new Label();
-		statusLabel.setText("Hosting session");
-
-		TextArea chatArea = new TextArea();
-		chatArea.setEditable(false);
-		chatArea.setWrapText(true);
-		chatArea.setText("Text placeholder for chat history...\n");
-
-		TextField messageField = new TextField();
-		messageField.setPromptText("Type a message...");
-
-		Button sendButton = new Button();
-		sendButton.setText("Send");
-
-		Button backButton = new Button();
-		backButton.setText("Back");
-
-		sendButton.setOnAction(event -> {
-			String text = messageField.getText();
-
-			// Prevent sending empty messages
-			if (text == null) {
-				return;
-			}
-
-			String trimmedText = text.trim();
-
-			if (trimmedText.isEmpty()) {
-				return;
-			}
-
-			chatArea.appendText("You: " + trimmedText + "\n");
-			messageField.clear();
-		});
-
-		backButton.setOnAction(event -> {
-			showConnectScene();
-		});
-
-		HBox inputRow = new HBox(10);
-		HBox.setHgrow(messageField, Priority.ALWAYS);
-		inputRow.getChildren().addAll(messageField, sendButton);
-
-		// Layout for the host chat scene
-		VBox layout = new VBox(10);
-		layout.setPadding(new Insets(15));
-		layout.getChildren().addAll(
-			titleLabel,
-			statusLabel,
-			chatArea,
-			inputRow,
-			backButton
-		);
-
-		Scene scene = new Scene(layout, 700, 500);
+	public static void showHostChatScene() {
+		HostChatView hostChatView = new HostChatView();
+		Scene scene = hostChatView.getScene();
 
 		primaryStage.setTitle("PeerLink Chat - Host Chat");
 		primaryStage.setScene(scene);
 	}
 
 	// Chat scene for connecting to a peer
-	private void showConnectToPeerChatScene() {
-		Label titleLabel = new Label();
-		titleLabel.setText("PeerLink Chat - Peer Chat Window");
-		titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
-
-		Label statusLabel = new Label();
-		statusLabel.setText("Connected to peer");
-
-		TextArea chatArea = new TextArea();
-		chatArea.setEditable(false);
-		chatArea.setWrapText(true);
-		chatArea.setText("Text placeholder for chat history...\n");
-
-		TextField messageField = new TextField();
-		messageField.setPromptText("Type a message...");
-
-		Button sendButton = new Button();
-		sendButton.setText("Send");
-
-		Button backButton = new Button();
-		backButton.setText("Back");
-
-		sendButton.setOnAction(event -> {
-			String text = messageField.getText();
-
-			// Prevent user from sending empty messages
-			if (text == null) {
-				return;
-			}
-
-			String trimmedText = text.trim();
-
-			if (trimmedText.isEmpty()) {
-				return;
-			}
-
-			chatArea.appendText("You: " + trimmedText + "\n");
-			messageField.clear();
-		});
-
-		backButton.setOnAction(event -> {
-			showConnectScene();
-		});
-
-		HBox inputRow = new HBox(10);
-		HBox.setHgrow(messageField, Priority.ALWAYS);
-		inputRow.getChildren().addAll(messageField, sendButton);
-
-		// Layout for chat scene
-		VBox layout = new VBox(10);
-		layout.setPadding(new Insets(15));
-		layout.getChildren().addAll(
-			titleLabel,
-			statusLabel,
-			chatArea,
-			inputRow,
-			backButton
-		);
-
-		Scene scene = new Scene(layout, 700, 500);
+	public static void showConnectChatScene() {
+		ConnectChatView connectChatView = new ConnectChatView();
+		Scene scene = connectChatView.getScene();
 
 		primaryStage.setTitle("PeerLink Chat - Peer Chat");
 		primaryStage.setScene(scene);
