@@ -1,3 +1,7 @@
+package view;
+
+import java.io.IOException;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -8,11 +12,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class ConnectChatView {
+public class PeerView {
 	private String ipAddress;
 	private String portNumber;
 
-	public ConnectChatView(String ipAddress, String portNumber) {
+	public PeerView(String ipAddress, String portNumber) {
 		this.ipAddress = ipAddress;
 		this.portNumber = portNumber;
 	}
@@ -66,7 +70,11 @@ public class ConnectChatView {
 
 		backButton.setOnAction(event ->
 		{
-			MainApp.showConnectScene();
+			try {
+				MainApp.showConnectScene();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		});
 
 		HBox inputRow = new HBox(10);

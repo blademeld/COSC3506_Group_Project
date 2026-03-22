@@ -1,4 +1,13 @@
+#directories
 .vscode/
-*.class
-.DS_Store
 lib/
+
+#files
+*.class
+*.jar
+*.sh
+
+#settings
+.DS_Store
+pom.xml
+pom.properties
