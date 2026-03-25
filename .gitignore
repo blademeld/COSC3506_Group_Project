@@ -8,6 +8,6 @@ lib/
 *.sh
 
 #settings
-.DS_Store
+**/.DS_Store
 pom.xml
 pom.properties
