@@ -52,7 +52,7 @@
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MainAppController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -88,7 +88,7 @@
         </Menu>
         <Menu mnemonicParsing="false" text="Help">
           <items>
-            <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+            <MenuItem mnemonicParsing="false" text="About PeerLink" />
           </items>
         </Menu>
       </menus>
@@ -97,15 +97,15 @@
       <items>
         <AnchorPane>
           <children>
-                  <ListView id="peerList" layoutX="11.0" layoutY="53.0" prefHeight="200.0" prefWidth="200.0" />
+                  <ListView fx:id="peerList" layoutX="11.0" layoutY="53.0" prefHeight="200.0" prefWidth="200.0" />
                   <Label layoutX="14.0" layoutY="36.0" text="Connected Users" />
-                  <ComboBox id="modeSelector" layoutX="11.0" layoutY="1.0" prefHeight="26.0" prefWidth="200.0" promptText="Manager"></ComboBox>
-                  <Button id="peerConnect" layoutX="11.0" layoutY="517.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Connect" />
-                  <ListView id="messages" layoutX="11.0" layoutY="270.0" prefHeight="153.0" prefWidth="200.0" />
+                  <ComboBox fx:id="modeSelector" layoutX="11.0" layoutY="1.0" prefHeight="26.0" prefWidth="200.0" promptText="Select Mode"></ComboBox>
+                  <Button fx:id="peerConnect" layoutX="11.0" layoutY="517.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Connect" onAction="#handleConnect" />
+                  <ListView fx:id="messages" layoutX="11.0" layoutY="270.0" prefHeight="153.0" prefWidth="200.0" />
                   <Label layoutX="14.0" layoutY="253.0" prefHeight="17.0" prefWidth="191.0" text="Transcripts" />
-                  <TextField id="hostIP" layoutX="11.0" layoutY="491.0" prefHeight="26.0" prefWidth="149.0" promptText="Host..." />
-                  <TextField id="hostPort" layoutX="160.0" layoutY="491.0" prefHeight="26.0" prefWidth="49.0" promptText="Port..." />
-                  <ListView id="callRecords" layoutX="11.0" layoutY="440.0" prefHeight="49.0" prefWidth="200.0" />
+                  <TextField fx:id="hostIP" layoutX="11.0" layoutY="491.0" prefHeight="26.0" prefWidth="149.0" promptText="Host..." />
+                  <TextField fx:id="hostPort" layoutX="160.0" layoutY="491.0" prefHeight="26.0" prefWidth="49.0" promptText="Port..." />
+                  <ListView fx:id="callRecords" layoutX="11.0" layoutY="440.0" prefHeight="49.0" prefWidth="200.0" />
                   <Label layoutX="14.0" layoutY="423.0" prefHeight="17.0" prefWidth="191.0" text="Call Logs" />
           </children>
         </AnchorPane>
@@ -113,18 +113,18 @@
           <content>
             <AnchorPane id="Content" minHeight="-1.0" minWidth="-1.0" prefHeight="545.0" prefWidth="430.0">
               <children>
-                <Label id="messageReciever" alignment="CENTER" layoutY="3.0" prefHeight="23.0" prefWidth="233.0" style="&#10;" text="Message with..." textAlignment="CENTER" wrapText="false">
+                <Label fx:id="messageReciever" alignment="CENTER" layoutY="3.0" prefHeight="23.0" prefWidth="233.0" style="&#10;" text="Message with..." textAlignment="CENTER" wrapText="false">
                            <font>
                       <Font size="18.0" fx:id="x1" />
                            </font>
                            <textFill>
                       <Color red="0.624" green="0.624" blue="0.624" fx:id="x2" />
                            </textFill></Label>
-                        <Button id="sendMessage" layoutX="611.0" layoutY="519.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="55.0" text="Send" />
-                        <TextArea id="transcriptDisplay" layoutY="28.0" prefHeight="491.0" prefWidth="669.0" />
-                        <TextField id="messageContent" layoutY="519.0" prefHeight="26.0" prefWidth="611.0" promptText="Message here..." />
-                        <ComboBox id="peerStatus" layoutX="449.0" layoutY="1.0" prefHeight="26.0" prefWidth="220.0" promptText="Available" ></ComboBox>
-                        <TextField id="peerUsername" layoutX="289.0" layoutY="1.0" promptText="My Username..." />
+                        <Button fx:id="sendMessage" layoutX="611.0" layoutY="519.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="55.0" text="Send" onAction="#handleSend" />
+                        <TextArea fx:id="transcriptDisplay" layoutY="28.0" prefHeight="491.0" prefWidth="669.0" />
+                        <TextField fx:id="messageContent" layoutY="519.0" prefHeight="26.0" prefWidth="611.0" promptText="Message here..." />
+                        <ComboBox fx:id="peerStatus" layoutX="449.0" layoutY="1.0" prefHeight="26.0" prefWidth="220.0" promptText="Available"></ComboBox>
+                        <TextField fx:id="peerUsername" layoutX="289.0" layoutY="1.0" promptText="My Username..." />
                         <Button id="sendCall" layoutX="234.0" layoutY="1.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="55.0" text="Call" />
               </children>
             </AnchorPane>
