@@ -1,6 +1,6 @@
 package controller;
 
-// Used to connect to the network and send/receive messages
+// Manages peer connections using TcpServer (host) or TcpClient (connect)
 public class PeerService {
 
     private ConnectionHandler connection;
@@ -12,29 +12,26 @@ public class PeerService {
         client = new TcpClient();
     }
 
-    // Host mode - start listening for 1 connection
+    // Start listening for one incoming peer connection (Host mode)
     public void connectToNetwork(int port, ConnectionHandler.ConnectListener listener) {
         server.listen(port, listener);
     }
 
-    // Connect to a peer at ip:port
+    // Connect outbound to a peer at ip:port (Connect/Manager mode)
     public void connectToPeer(String ip, int port, ConnectionHandler.ConnectListener listener) {
         client.connect(ip, port, listener);
     }
 
-    // Store the active connection once established
     public void setConnection(ConnectionHandler handler) {
         this.connection = handler;
     }
 
-    // Send a message to the connected peer
     public void sendMessage(String message) {
         if (connection != null) {
             connection.send(message);
         }
     }
 
-    // Disconnect from the network
     public void disconnectFromNetwork() {
         if (connection != null) {
             connection.close();

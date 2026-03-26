@@ -38,6 +38,8 @@ public class MainAppController {
     @FXML
     private Button peerConnect;
     @FXML
+    private Button sendMessage;
+    @FXML
     private Label transcriptsLabel;
     @FXML
     private Label callLogsLabel;
@@ -81,6 +83,8 @@ public class MainAppController {
                 hostPort.setPromptText("Listen port...");
                 peerConnect.setText("Listen");
                 setManagerPanelVisible(false);
+                sendMessage.setDisable(false);
+                messageContent.setDisable(false);
                 break;
             case "Connect":
                 hostIP.setVisible(true);
@@ -88,6 +92,8 @@ public class MainAppController {
                 hostPort.setPromptText("Port...");
                 peerConnect.setText("Connect");
                 setManagerPanelVisible(false);
+                sendMessage.setDisable(false);
+                messageContent.setDisable(false);
                 break;
             case "Manager":
                 hostIP.setVisible(true);
@@ -95,6 +101,8 @@ public class MainAppController {
                 hostPort.setPromptText("Port...");
                 peerConnect.setText("Connect");
                 setManagerPanelVisible(true);
+                sendMessage.setDisable(true);
+                messageContent.setDisable(true);
                 break;
         }
     }
@@ -136,19 +144,19 @@ public class MainAppController {
             return;
         }
 
-        ConnectionHandler.ConnectListener listener = new ConnectionHandler.ConnectListener() {
+        ChallengeService.AuthLogger authLogger = new ChallengeService.AuthLogger() {
+            public void log(String message) {
+                Platform.runLater(new Runnable() {
+                    public void run() {
+                        transcriptDisplay.appendText("  " + message + "\n");
+                    }
+                });
+            }
+        };
+
+        ConnectionHandler.ConnectListener peerListener = new ConnectionHandler.ConnectListener() {
             public void onConnected(ConnectionHandler handler) {
                 log("Establishing cryptographic identity...");
-
-                ChallengeService.AuthLogger authLogger = new ChallengeService.AuthLogger() {
-                    public void log(String message) {
-                        Platform.runLater(new Runnable() {
-                            public void run() {
-                                transcriptDisplay.appendText("  " + message + "\n");
-                            }
-                        });
-                    }
-                };
 
                 String peerDisplay;
                 if ("Host".equals(mode)) {
@@ -181,7 +189,7 @@ public class MainAppController {
                         chatService.receiveMessage(raw);
                         Platform.runLater(new Runnable() {
                             public void run() {
-                                transcriptDisplay.appendText("Peer: " + raw + "\n");
+                                transcriptDisplay.appendText(raw + "\n");
                                 refreshTranscriptList();
                             }
                         });
@@ -199,11 +207,11 @@ public class MainAppController {
         if ("Host".equals(mode)) {
             transcriptDisplay.appendText("[Host] Listening on port " + port + "...\n");
             messageReciever.setText("Listening on :" + port);
-            peerService.connectToNetwork(port, listener);
+            peerService.connectToNetwork(port, peerListener);
         } else {
             transcriptDisplay.appendText("[" + mode + "] Connecting to " + ip + ":" + port + "...\n");
             messageReciever.setText(ip + ":" + port);
-            peerService.connectToPeer(ip, port, listener);
+            peerService.connectToPeer(ip, port, peerListener);
         }
     }
 
@@ -216,8 +224,9 @@ public class MainAppController {
         String username = peerUsername.getText().trim();
         String sender = username.isEmpty() ? "Me" : username;
 
-        chatService.sendMessage(msg);
-        transcriptDisplay.appendText(sender + ": " + msg + "\n");
+        String wireMessage = sender + ": " + msg;
+        chatService.sendMessage(wireMessage);
+        transcriptDisplay.appendText(wireMessage + "\n");
         messageContent.clear();
         refreshTranscriptList();
     }

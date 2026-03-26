@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-// Listens on a specified port, accepts 1 connection
+// Listens on a port and accepts one incoming peer connection
 public class TcpServer {
 
-    // Wait for one peer to connect on the given port
     public void listen(int port, ConnectionHandler.ConnectListener listener) {
         Runnable task = new Runnable() {
             public void run() {
