@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import model.PeerProfile;
 import model.TranscriptStore;
 
 public class MainAppController {
@@ -45,12 +46,21 @@ public class MainAppController {
     private final PeerService peerService = new PeerService();
     private final ChatService chatService = new ChatService(store);
     private final TranscriptService transcriptService = new TranscriptService(store);
+    private final KeyManager keyManager = new KeyManager();
+    private final ChallengeService challengeService = new ChallengeService();
+    private PeerProfile localProfile;
 
     @FXML
     public void initialize() {
         modeSelector.getItems().addAll("Host", "Connect", "Manager");
         peerStatus.getItems().addAll("Available", "Busy", "Away");
         modeSelector.setOnAction(e -> updateModeView(modeSelector.getValue()));
+
+        try {
+            localProfile = keyManager.generateProfile("peer");
+        } catch (Exception e) {
+            transcriptDisplay.appendText("[Error] Could not generate keypair.\n");
+        }
     }
 
     private void updateModeView(String mode) {
@@ -97,6 +107,13 @@ public class MainAppController {
         String ip = hostIP.getText().trim();
         String portStr = hostPort.getText().trim();
         String mode = modeSelector.getValue();
+        String localId = peerUsername.getText().trim();
+        String remoteId = ip.isEmpty() ? "peer" : ip;
+
+        if (localId.isEmpty()) {
+            transcriptDisplay.appendText("[Error] Please enter your username before connecting.\n");
+            return;
+        }
 
         boolean needsIp = !"Host".equals(mode);
         if (mode == null || portStr.isEmpty() || (needsIp && ip.isEmpty())) {
@@ -112,13 +129,45 @@ public class MainAppController {
             return;
         }
 
-        String localId = peerUsername.getText().trim().isEmpty() ? "me" : peerUsername.getText().trim();
-        String remoteId = ip.isEmpty() ? "peer" : ip;
-
         ConnectionHandler.ConnectListener listener = new ConnectionHandler.ConnectListener() {
             public void onConnected(ConnectionHandler handler) {
+                log("Establishing cryptographic identity...");
+
+                ChallengeService.AuthLogger authLogger = new ChallengeService.AuthLogger() {
+                    public void log(String message) {
+                        Platform.runLater(new Runnable() {
+                            public void run() {
+                                transcriptDisplay.appendText("  " + message + "\n");
+                            }
+                        });
+                    }
+                };
+
+                String peerDisplay;
+                if ("Host".equals(mode)) {
+                    peerDisplay = challengeService.authenticateAsHost(handler, localProfile, localId, authLogger);
+                } else {
+                    peerDisplay = challengeService.authenticateAsClient(handler, localProfile, localId, authLogger);
+                }
+
+                if (peerDisplay == null) {
+                    log("[Error] Authentication failed. Connection closed.");
+                    handler.close();
+                    return;
+                }
+
+                final String displayName = peerDisplay;
+                log("Connected to " + displayName);
+
+                Platform.runLater(new Runnable() {
+                    public void run() {
+                        peerList.getItems().add(displayName);
+                        messageReciever.setText("Chatting with " + displayName);
+                    }
+                });
+
                 peerService.setConnection(handler);
-                chatService.connect(localId, remoteId, handler);
+                chatService.connect(localId, peerDisplay, handler);
 
                 handler.startListening(new ConnectionHandler.MessageListener() {
                     public void onMessage(String raw) {
@@ -132,19 +181,11 @@ public class MainAppController {
                     }
                 });
 
-                Platform.runLater(new Runnable() {
-                    public void run() {
-                        transcriptDisplay.appendText("[" + mode + "] Connected.\n");
-                    }
-                });
+                log("[" + mode + "] Connected.");
             }
 
             public void onError(String message) {
-                Platform.runLater(new Runnable() {
-                    public void run() {
-                        transcriptDisplay.appendText("[Error] " + message + "\n");
-                    }
-                });
+                log("[Error] " + message);
             }
         };
 
@@ -172,6 +213,25 @@ public class MainAppController {
         transcriptDisplay.appendText(sender + ": " + msg + "\n");
         messageContent.clear();
         refreshTranscriptList();
+    }
+
+    @FXML
+    private void handleReset() {
+        peerService.disconnectFromNetwork();
+        chatService.disconnect();
+        transcriptDisplay.clear();
+        peerList.getItems().clear();
+        messages.getItems().clear();
+        messageReciever.setText("Message with...");
+        transcriptDisplay.appendText("Session reset.\n");
+    }
+
+    private void log(final String message) {
+        Platform.runLater(new Runnable() {
+            public void run() {
+                transcriptDisplay.appendText(message + "\n");
+            }
+        });
     }
 
     private void refreshTranscriptList() {

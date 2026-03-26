@@ -10,24 +10,23 @@ import java.net.Socket;
 // Wraps a connected socket and handles reading/writing messages
 public class ConnectionHandler {
 
-    // Error and success callbacks
     public interface ConnectListener {
         void onConnected(ConnectionHandler handler);
-
         void onError(String message);
     }
 
-    // Called for each line received from the peer
     public interface MessageListener {
         void onMessage(String message);
     }
 
     private final Socket socket;
     private final PrintWriter out;
+    private final BufferedReader in;
 
     public ConnectionHandler(Socket socket) throws IOException {
         this.socket = socket;
         this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     // Send a line of text to the peer
@@ -35,13 +34,16 @@ public class ConnectionHandler {
         out.println(message);
     }
 
-    // Start reading from the peer in a background thread
+    // Read one line — used during auth handshake before chat starts
+    public String readLine() throws IOException {
+        return in.readLine();
+    }
+
+    // Start reading chat messages from the peer in a background thread
     public void startListening(final MessageListener listener) {
         Runnable task = new Runnable() {
             public void run() {
                 try {
-                    BufferedReader in = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream()));
                     String line;
                     while ((line = in.readLine()) != null) {
                         listener.onMessage(line);
@@ -53,14 +55,11 @@ public class ConnectionHandler {
         };
 
         Thread t = new Thread(task);
-        t.setDaemon(true); // thread stops automatically when the app closes
+        t.setDaemon(true);
         t.start();
     }
 
     public void close() {
-        try {
-            socket.close();
-        } catch (IOException e) {
-            /* ignore */ }
+        try { socket.close(); } catch (IOException e) { /* ignore */ }
     }
 }
