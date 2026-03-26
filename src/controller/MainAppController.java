@@ -56,6 +56,14 @@ public class MainAppController {
         peerStatus.getItems().addAll("Available", "Busy", "Away");
         modeSelector.setOnAction(e -> updateModeView(modeSelector.getValue()));
 
+        messageContent.setOnKeyPressed(new javafx.event.EventHandler<javafx.scene.input.KeyEvent>() {
+            public void handle(javafx.scene.input.KeyEvent event) {
+                if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                    handleSend();
+                }
+            }
+        });
+
         try {
             localProfile = keyManager.generateProfile("peer");
         } catch (Exception e) {
@@ -108,7 +116,6 @@ public class MainAppController {
         String portStr = hostPort.getText().trim();
         String mode = modeSelector.getValue();
         String localId = peerUsername.getText().trim();
-        String remoteId = ip.isEmpty() ? "peer" : ip;
 
         if (localId.isEmpty()) {
             transcriptDisplay.appendText("[Error] Please enter your username before connecting.\n");
