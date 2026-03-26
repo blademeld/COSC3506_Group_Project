@@ -1,19 +1,36 @@
 package controller;
+
 import model.Message;
-import model.CallRecord;
-import java.util.Collections;
+import model.TranscriptStore;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 public class TranscriptService {
 
-    public List<Message> getMessages(String peerId) {
-        // TODO: fetch chat messages for peer session
-        return Collections.emptyList();
+    private final TranscriptStore store;
+
+    public TranscriptService(TranscriptStore store) {
+        this.store = store;
     }
 
-    public List<CallRecord> getCallRecords(String peerId) {
-        // TODO: fetch call records for peer session
-        return Collections.emptyList();
+    public List<Message> getMessages() {
+        return store.getMessages();
+    }
+
+    // Save the transcript to a local text file
+    public void saveToFile(String filename) {
+        try {
+            FileWriter writer = new FileWriter(filename);
+            for (Message msg : store.getMessages()) {
+                writer.write("[" + msg.getTimestamp() + "] "
+                        + msg.getSenderId() + ": "
+                        + msg.getContent() + "\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Could not save transcript: " + e.getMessage());
+        }
     }
 }
-

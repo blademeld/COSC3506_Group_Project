@@ -2,11 +2,13 @@ package controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import model.TranscriptStore;
 
 public class MainAppController {
 
@@ -33,16 +35,21 @@ public class MainAppController {
     @FXML
     private Label messageReciever;
     @FXML
-    private javafx.scene.control.Button peerConnect;
+    private Button peerConnect;
+    @FXML
+    private Label transcriptsLabel;
+    @FXML
+    private Label callLogsLabel;
 
+    private final TranscriptStore store = new TranscriptStore();
     private final PeerService peerService = new PeerService();
+    private final ChatService chatService = new ChatService(store);
+    private final TranscriptService transcriptService = new TranscriptService(store);
 
     @FXML
     public void initialize() {
         modeSelector.getItems().addAll("Host", "Connect", "Manager");
         peerStatus.getItems().addAll("Available", "Busy", "Away");
-
-        // Update UI when mode changes
         modeSelector.setOnAction(e -> updateModeView(modeSelector.getValue()));
     }
 
@@ -51,21 +58,38 @@ public class MainAppController {
             return;
         switch (mode) {
             case "Host":
-                // Hosting: only need a port to listen on
                 hostIP.setVisible(false);
                 hostIP.setManaged(false);
                 hostPort.setPromptText("Listen port...");
                 peerConnect.setText("Listen");
+                setManagerPanelVisible(false);
                 break;
             case "Connect":
-            case "Manager":
-                // Connecting out: need both IP and port
                 hostIP.setVisible(true);
                 hostIP.setManaged(true);
                 hostPort.setPromptText("Port...");
                 peerConnect.setText("Connect");
+                setManagerPanelVisible(false);
+                break;
+            case "Manager":
+                hostIP.setVisible(true);
+                hostIP.setManaged(true);
+                hostPort.setPromptText("Port...");
+                peerConnect.setText("Connect");
+                setManagerPanelVisible(true);
                 break;
         }
+    }
+
+    private void setManagerPanelVisible(boolean visible) {
+        messages.setVisible(visible);
+        messages.setManaged(visible);
+        transcriptsLabel.setVisible(visible);
+        transcriptsLabel.setManaged(visible);
+        callRecords.setVisible(visible);
+        callRecords.setManaged(visible);
+        callLogsLabel.setVisible(visible);
+        callLogsLabel.setManaged(visible);
     }
 
     @FXML
@@ -88,23 +112,39 @@ public class MainAppController {
             return;
         }
 
+        String localId = peerUsername.getText().trim().isEmpty() ? "me" : peerUsername.getText().trim();
+        String remoteId = ip.isEmpty() ? "peer" : ip;
+
         ConnectionHandler.ConnectListener listener = new ConnectionHandler.ConnectListener() {
             public void onConnected(ConnectionHandler handler) {
                 peerService.setConnection(handler);
+                chatService.connect(localId, remoteId, handler);
+
                 handler.startListening(new ConnectionHandler.MessageListener() {
-                    public void onMessage(String msg) {
+                    public void onMessage(String raw) {
+                        chatService.receiveMessage(raw);
                         Platform.runLater(new Runnable() {
                             public void run() {
-                                transcriptDisplay.appendText("Peer: " + msg + "\n");
+                                transcriptDisplay.appendText("Peer: " + raw + "\n");
+                                refreshTranscriptList();
                             }
                         });
                     }
                 });
-                Platform.runLater(() -> transcriptDisplay.appendText("[" + mode + "] Connected.\n"));
+
+                Platform.runLater(new Runnable() {
+                    public void run() {
+                        transcriptDisplay.appendText("[" + mode + "] Connected.\n");
+                    }
+                });
             }
 
             public void onError(String message) {
-                Platform.runLater(() -> transcriptDisplay.appendText("[Error] " + message + "\n"));
+                Platform.runLater(new Runnable() {
+                    public void run() {
+                        transcriptDisplay.appendText("[Error] " + message + "\n");
+                    }
+                });
             }
         };
 
@@ -128,8 +168,16 @@ public class MainAppController {
         String username = peerUsername.getText().trim();
         String sender = username.isEmpty() ? "Me" : username;
 
-        peerService.sendMessage(msg);
+        chatService.sendMessage(msg);
         transcriptDisplay.appendText(sender + ": " + msg + "\n");
         messageContent.clear();
+        refreshTranscriptList();
+    }
+
+    private void refreshTranscriptList() {
+        messages.getItems().clear();
+        for (model.Message msg : transcriptService.getMessages()) {
+            messages.getItems().add(msg.getSenderId() + ": " + msg.getContent());
+        }
     }
 }
