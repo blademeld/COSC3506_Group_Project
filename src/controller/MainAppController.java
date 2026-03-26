@@ -45,7 +45,7 @@ public class MainAppController {
     private Label callLogsLabel;
 
     private final TranscriptStore store = new TranscriptStore();
-    private final PeerService peerService = new PeerService();
+    private final ManagerService peerService = new ManagerService(store);
     private final ChatService chatService = new ChatService(store);
     private final TranscriptService transcriptService = new TranscriptService(store);
     private final KeyManager keyManager = new KeyManager();
@@ -57,6 +57,13 @@ public class MainAppController {
         modeSelector.getItems().addAll("Host", "Connect", "Manager");
         peerStatus.getItems().addAll("Available", "Busy", "Away");
         modeSelector.setOnAction(e -> updateModeView(modeSelector.getValue()));
+
+        peerList.setOnMouseClicked(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
+            public void handle(javafx.scene.input.MouseEvent event) {
+                String selected = peerList.getSelectionModel().getSelectedItem();
+                filterTranscriptFor(selected);
+            }
+        });
 
         messageContent.setOnKeyPressed(new javafx.event.EventHandler<javafx.scene.input.KeyEvent>() {
             public void handle(javafx.scene.input.KeyEvent event) {
@@ -80,34 +87,48 @@ public class MainAppController {
             case "Host":
                 hostIP.setVisible(false);
                 hostIP.setManaged(false);
+                hostPort.setVisible(true);
+                hostPort.setManaged(true);
                 hostPort.setPromptText("Listen port...");
+                peerConnect.setVisible(true);
+                peerConnect.setManaged(true);
                 peerConnect.setText("Listen");
-                setManagerPanelVisible(false);
+                setSuperPanelVisible(false);
                 sendMessage.setDisable(false);
                 messageContent.setDisable(false);
                 break;
             case "Connect":
                 hostIP.setVisible(true);
                 hostIP.setManaged(true);
+                hostPort.setVisible(true);
+                hostPort.setManaged(true);
                 hostPort.setPromptText("Port...");
+                peerConnect.setVisible(true);
+                peerConnect.setManaged(true);
                 peerConnect.setText("Connect");
-                setManagerPanelVisible(false);
+                setSuperPanelVisible(false);
                 sendMessage.setDisable(false);
                 messageContent.setDisable(false);
                 break;
             case "Manager":
-                hostIP.setVisible(true);
-                hostIP.setManaged(true);
-                hostPort.setPromptText("Port...");
-                peerConnect.setText("Connect");
-                setManagerPanelVisible(true);
+                hostIP.setVisible(false);
+                hostIP.setManaged(false);
+                hostPort.setVisible(false);
+                hostPort.setManaged(false);
+                peerConnect.setVisible(false);
+                peerConnect.setManaged(false);
+                setSuperPanelVisible(true);
                 sendMessage.setDisable(true);
                 messageContent.setDisable(true);
+                refreshPeerList();
+                refreshTranscriptList();
                 break;
         }
     }
 
-    private void setManagerPanelVisible(boolean visible) {
+    // The super panel shows the Host's view: peer list on the left + message
+    // history sidebar
+    private void setSuperPanelVisible(boolean visible) {
         messages.setVisible(visible);
         messages.setManaged(visible);
         transcriptsLabel.setVisible(visible);
@@ -130,7 +151,15 @@ public class MainAppController {
             return;
         }
 
-        boolean needsIp = !"Host".equals(mode);
+        try {
+            localProfile = keyManager.generateProfile(localId);
+            peerService.setProfile(localProfile);
+        } catch (Exception e) {
+            transcriptDisplay.appendText("[Error] Could not generate keypair.\n");
+            return;
+        }
+
+        boolean needsIp = "Connect".equals(mode);
         if (mode == null || portStr.isEmpty() || (needsIp && ip.isEmpty())) {
             transcriptDisplay.appendText("[Error] Please select a mode and enter the required fields.\n");
             return;
@@ -159,10 +188,10 @@ public class MainAppController {
                 log("Establishing cryptographic identity...");
 
                 String peerDisplay;
-                if ("Host".equals(mode)) {
-                    peerDisplay = challengeService.authenticateAsHost(handler, localProfile, localId, authLogger);
-                } else {
+                if ("Connect".equals(mode)) {
                     peerDisplay = challengeService.authenticateAsClient(handler, localProfile, localId, authLogger);
+                } else {
+                    peerDisplay = challengeService.authenticateAsHost(handler, localProfile, localId, authLogger);
                 }
 
                 if (peerDisplay == null) {
@@ -177,7 +206,11 @@ public class MainAppController {
                 Platform.runLater(new Runnable() {
                     public void run() {
                         peerList.getItems().add(displayName);
-                        messageReciever.setText("Chatting with " + displayName);
+                        if ("Manager".equals(mode)) {
+                            messageReciever.setText("Monitoring " + displayName);
+                        } else {
+                            messageReciever.setText("Chatting with " + displayName);
+                        }
                     }
                 });
 
@@ -204,14 +237,15 @@ public class MainAppController {
             }
         };
 
-        if ("Host".equals(mode)) {
-            transcriptDisplay.appendText("[Host] Listening on port " + port + "...\n");
-            messageReciever.setText("Listening on :" + port);
-            peerService.connectToNetwork(port, peerListener);
-        } else {
-            transcriptDisplay.appendText("[" + mode + "] Connecting to " + ip + ":" + port + "...\n");
+        if ("Connect".equals(mode)) {
+            transcriptDisplay.appendText("[Connect] Connecting to " + ip + ":" + port + "...\n");
             messageReciever.setText(ip + ":" + port);
             peerService.connectToPeer(ip, port, peerListener);
+        } else {
+            String label = "Manager".equals(mode) ? "[Manager]" : "[Host]";
+            transcriptDisplay.appendText(label + " Listening on port " + port + "...\n");
+            messageReciever.setText("Listening on :" + port);
+            peerService.connectToNetwork(port, peerListener);
         }
     }
 
@@ -222,7 +256,7 @@ public class MainAppController {
             return;
 
         String username = peerUsername.getText().trim();
-        String role = "Host".equals(modeSelector.getValue()) ? "[Host]" : "[Peer]";
+        String role = "Connect".equals(modeSelector.getValue()) ? "[Peer]" : "[Host]";
         String sender = username.isEmpty() ? role : role + " " + username;
 
         String wireMessage = sender + ": " + msg;
@@ -255,6 +289,26 @@ public class MainAppController {
         messages.getItems().clear();
         for (model.Message msg : transcriptService.getMessages()) {
             messages.getItems().add(msg.getContent());
+        }
+    }
+
+    // Shows only messages involving the selected peer (sent or received)
+    private void filterTranscriptFor(String selected) {
+        if (selected == null) return;
+        String name = selected;
+        messages.getItems().clear();
+        for (model.Message msg : peerService.getMessagesFor(name)) {
+            messages.getItems().add(msg.getContent());
+        }
+    }
+
+    private void refreshPeerList() {
+        peerList.getItems().clear();
+        for (model.PeerClient peer : peerService.getActivePeers()) {
+            String name = peer.getUsername();
+            if (!peerList.getItems().contains(name)) {
+                peerList.getItems().add(name);
+            }
         }
     }
 }

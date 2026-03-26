@@ -101,12 +101,12 @@
                   <Label layoutX="14.0" layoutY="36.0" text="Connected Users" />
                   <ComboBox fx:id="modeSelector" layoutX="11.0" layoutY="1.0" prefHeight="26.0" prefWidth="200.0" promptText="Select Mode"></ComboBox>
                   <Button fx:id="peerConnect" layoutX="11.0" layoutY="517.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Connect" onAction="#handleConnect" />
-                  <ListView fx:id="messages" layoutX="11.0" layoutY="270.0" prefHeight="153.0" prefWidth="200.0" />
-                  <Label fx:id="transcriptsLabel" layoutX="14.0" layoutY="253.0" prefHeight="17.0" prefWidth="191.0" text="Transcripts" />
+                  <ListView fx:id="messages" layoutX="11.0" layoutY="270.0" prefHeight="153.0" prefWidth="200.0" visible="false" managed="false" />
+                  <Label fx:id="transcriptsLabel" layoutX="14.0" layoutY="253.0" prefHeight="17.0" prefWidth="191.0" text="Transcripts" visible="false" managed="false" />
                   <TextField fx:id="hostIP" layoutX="11.0" layoutY="491.0" prefHeight="26.0" prefWidth="149.0" promptText="Host..." />
                   <TextField fx:id="hostPort" layoutX="160.0" layoutY="491.0" prefHeight="26.0" prefWidth="49.0" promptText="Port..." />
-                  <ListView fx:id="callRecords" layoutX="11.0" layoutY="440.0" prefHeight="49.0" prefWidth="200.0" />
-                  <Label fx:id="callLogsLabel" layoutX="14.0" layoutY="423.0" prefHeight="17.0" prefWidth="191.0" text="Call Logs" />
+                  <ListView fx:id="callRecords" layoutX="11.0" layoutY="440.0" prefHeight="49.0" prefWidth="200.0" visible="false" managed="false" />
+                  <Label fx:id="callLogsLabel" layoutX="14.0" layoutY="423.0" prefHeight="17.0" prefWidth="191.0" text="Call Logs" visible="false" managed="false" />
           </children>
         </AnchorPane>
         <ScrollPane prefHeight="-1.0" prefWidth="-1.0">

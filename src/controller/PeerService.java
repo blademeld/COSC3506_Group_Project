@@ -17,7 +17,7 @@ public class PeerService {
         server.listen(port, listener);
     }
 
-    // Connect outbound to a peer at ip:port (Connect/Manager mode)
+    // Connect outbound to a peer at ip:port (Connect mode)
     public void connectToPeer(String ip, int port, ConnectionHandler.ConnectListener listener) {
         client.connect(ip, port, listener);
     }
