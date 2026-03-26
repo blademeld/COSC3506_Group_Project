@@ -10,17 +10,30 @@ import javafx.scene.control.TextField;
 
 public class MainAppController {
 
-    @FXML private ComboBox<String> modeSelector;
-    @FXML private ListView<String> peerList;
-    @FXML private ListView<String> messages;
-    @FXML private ListView<String> callRecords;
-    @FXML private TextField hostIP;
-    @FXML private TextField hostPort;
-    @FXML private TextArea transcriptDisplay;
-    @FXML private TextField messageContent;
-    @FXML private ComboBox<String> peerStatus;
-    @FXML private TextField peerUsername;
-    @FXML private Label messageReciever;
+    @FXML
+    private ComboBox<String> modeSelector;
+    @FXML
+    private ListView<String> peerList;
+    @FXML
+    private ListView<String> messages;
+    @FXML
+    private ListView<String> callRecords;
+    @FXML
+    private TextField hostIP;
+    @FXML
+    private TextField hostPort;
+    @FXML
+    private TextArea transcriptDisplay;
+    @FXML
+    private TextField messageContent;
+    @FXML
+    private ComboBox<String> peerStatus;
+    @FXML
+    private TextField peerUsername;
+    @FXML
+    private Label messageReciever;
+    @FXML
+    private javafx.scene.control.Button peerConnect;
 
     private final PeerService peerService = new PeerService();
 
@@ -34,13 +47,15 @@ public class MainAppController {
     }
 
     private void updateModeView(String mode) {
-        if (mode == null) return;
+        if (mode == null)
+            return;
         switch (mode) {
             case "Host":
-                // Hosting: only need a port to listen on, not a remote IP
+                // Hosting: only need a port to listen on
                 hostIP.setVisible(false);
                 hostIP.setManaged(false);
                 hostPort.setPromptText("Listen port...");
+                peerConnect.setText("Listen");
                 break;
             case "Connect":
             case "Manager":
@@ -48,6 +63,7 @@ public class MainAppController {
                 hostIP.setVisible(true);
                 hostIP.setManaged(true);
                 hostPort.setPromptText("Port...");
+                peerConnect.setText("Connect");
                 break;
         }
     }
@@ -86,6 +102,7 @@ public class MainAppController {
                 });
                 Platform.runLater(() -> transcriptDisplay.appendText("[" + mode + "] Connected.\n"));
             }
+
             public void onError(String message) {
                 Platform.runLater(() -> transcriptDisplay.appendText("[Error] " + message + "\n"));
             }
@@ -105,7 +122,8 @@ public class MainAppController {
     @FXML
     private void handleSend() {
         String msg = messageContent.getText().trim();
-        if (msg.isEmpty()) return;
+        if (msg.isEmpty())
+            return;
 
         String username = peerUsername.getText().trim();
         String sender = username.isEmpty() ? "Me" : username;
