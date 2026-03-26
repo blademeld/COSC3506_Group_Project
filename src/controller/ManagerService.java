@@ -60,7 +60,7 @@ public class ManagerService extends PeerService {
                 peers.put(sender, new PeerClient(sender, "", sender));
             }
             String receiver = msg.getReceiverId();
-            if (receiver != null && !peers.containsKey(receiver)) {
+            if (receiver != null && !receiver.isEmpty() && !peers.containsKey(receiver)) {
                 peers.put(receiver, new PeerClient(receiver, "", receiver));
             }
         }

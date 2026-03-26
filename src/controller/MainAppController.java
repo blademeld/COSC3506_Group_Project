@@ -6,10 +6,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 import model.PeerProfile;
 import model.TranscriptStore;
+import java.io.File;
 
 public class MainAppController {
 
@@ -43,6 +46,8 @@ public class MainAppController {
     private Label transcriptsLabel;
     @FXML
     private Label callLogsLabel;
+    @FXML
+    private MenuItem openMenuItem;
 
     private final TranscriptStore store = new TranscriptStore();
     private final ManagerService peerService = new ManagerService(store);
@@ -51,6 +56,8 @@ public class MainAppController {
     private final KeyManager keyManager = new KeyManager();
     private final ChallengeService challengeService = new ChallengeService();
     private PeerProfile localProfile;
+    private String connectedPeerName = null;
+    private String connectedLocalName = null;
 
     @FXML
     public void initialize() {
@@ -92,6 +99,7 @@ public class MainAppController {
                 setSuperPanelVisible(false);
                 sendMessage.setDisable(false);
                 messageContent.setDisable(false);
+                openMenuItem.setDisable(true);
                 break;
             case "Connect":
                 hostIP.setVisible(true);
@@ -105,6 +113,7 @@ public class MainAppController {
                 setSuperPanelVisible(false);
                 sendMessage.setDisable(false);
                 messageContent.setDisable(false);
+                openMenuItem.setDisable(true);
                 break;
             case "Manager":
                 hostIP.setVisible(false);
@@ -116,8 +125,9 @@ public class MainAppController {
                 setSuperPanelVisible(true);
                 sendMessage.setDisable(true);
                 messageContent.setDisable(true);
+                openMenuItem.setDisable(false);
                 refreshPeerList();
-                refreshTranscriptList();
+                messages.getItems().clear();
                 break;
         }
     }
@@ -197,6 +207,7 @@ public class MainAppController {
                 }
 
                 final String displayName = peerDisplay;
+                connectedPeerName = displayName;
                 log("Connected to " + displayName);
 
                 Platform.runLater(new Runnable() {
@@ -260,6 +271,7 @@ public class MainAppController {
     private void handleReset() {
         peerService.disconnectFromNetwork();
         chatService.disconnect();
+        connectedPeerName = null;
         transcriptDisplay.clear();
         peerList.getItems().clear();
         messages.getItems().clear();
@@ -285,19 +297,55 @@ public class MainAppController {
     // Shows only messages involving the selected peer (sent or received)
     private void filterTranscriptFor(String selected) {
         if (selected == null) return;
+        String name = selected.replaceFirst("^[🟢⚫] ", "");
         messages.getItems().clear();
-        for (model.Message msg : peerService.getMessagesFor(selected)) {
+        for (model.Message msg : peerService.getMessagesFor(name)) {
             messages.getItems().add(msg.getContent());
         }
     }
 
     private void refreshPeerList() {
         peerList.getItems().clear();
+        String localName = peerUsername.getText().trim();
+        boolean activeSession = connectedPeerName != null;
         for (model.PeerClient peer : peerService.getActivePeers()) {
             String name = peer.getUsername();
-            if (!peerList.getItems().contains(name)) {
-                peerList.getItems().add(name);
+            boolean online = activeSession && (name.equals(connectedPeerName) || name.equals(localName));
+            String entry = (online ? "🟢 " : "⚫ ") + name;
+            if (!peerList.getItems().contains(entry)) {
+                peerList.getItems().add(entry);
             }
         }
+    }
+
+    @FXML
+    private void handleSave() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Save Transcript");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        File file = chooser.showSaveDialog(transcriptDisplay.getScene().getWindow());
+        if (file != null) {
+            transcriptService.saveToFile(file.getAbsolutePath());
+            transcriptDisplay.appendText("[Saved] Transcript saved to " + file.getName() + "\n");
+        }
+    }
+
+    @FXML
+    private void handleOpen() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import Transcript");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        File file = chooser.showOpenDialog(transcriptDisplay.getScene().getWindow());
+        if (file != null) {
+            transcriptService.loadFromFile(file.getAbsolutePath());
+            transcriptDisplay.appendText("[Loaded] Imported transcript from " + file.getName() + "\n");
+            refreshPeerList();
+            refreshTranscriptList();
+        }
+    }
+
+    @FXML
+    private void handleQuit() {
+        Platform.exit();
     }
 }

@@ -59,17 +59,17 @@
         <Menu mnemonicParsing="false" text="File">
           <items>
             <MenuItem mnemonicParsing="false" text="New" />
-            <MenuItem mnemonicParsing="false" text="Open…" />
+            <MenuItem fx:id="openMenuItem" mnemonicParsing="false" text="Open…" onAction="#handleOpen" disable="true" />
             <Menu mnemonicParsing="false" text="Open Recent" />
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" text="Close" />
-            <MenuItem mnemonicParsing="false" text="Save" />
-            <MenuItem mnemonicParsing="false" text="Save As…" />
+            <MenuItem mnemonicParsing="false" text="Save" onAction="#handleSave" />
+            <MenuItem mnemonicParsing="false" text="Save As…" onAction="#handleSave" />
             <MenuItem mnemonicParsing="false" text="Revert" onAction="#handleReset" />
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" text="Preferences…" />
             <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Quit" />
+            <MenuItem mnemonicParsing="false" text="Quit" onAction="#handleQuit" />
           </items>
         </Menu>
         <Menu mnemonicParsing="false" text="Edit">
@@ -98,7 +98,7 @@
         <AnchorPane>
           <children>
                   <ListView fx:id="peerList" layoutX="11.0" layoutY="53.0" prefHeight="200.0" prefWidth="200.0" />
-                  <Label layoutX="14.0" layoutY="36.0" text="Connected Users" />
+                  <Label layoutX="14.0" layoutY="36.0" text="Users" />
                   <ComboBox fx:id="modeSelector" layoutX="11.0" layoutY="1.0" prefHeight="26.0" prefWidth="200.0" promptText="Select Mode"></ComboBox>
                   <Button fx:id="peerConnect" layoutX="11.0" layoutY="517.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Connect" onAction="#handleConnect" />
                   <ListView fx:id="messages" layoutX="11.0" layoutY="270.0" prefHeight="153.0" prefWidth="200.0" visible="false" managed="false" />
