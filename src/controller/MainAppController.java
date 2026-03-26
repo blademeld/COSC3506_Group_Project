@@ -222,7 +222,8 @@ public class MainAppController {
             return;
 
         String username = peerUsername.getText().trim();
-        String sender = username.isEmpty() ? "Me" : username;
+        String role = "Host".equals(modeSelector.getValue()) ? "[Host]" : "[Peer]";
+        String sender = username.isEmpty() ? role : role + " " + username;
 
         String wireMessage = sender + ": " + msg;
         chatService.sendMessage(wireMessage);
@@ -253,7 +254,7 @@ public class MainAppController {
     private void refreshTranscriptList() {
         messages.getItems().clear();
         for (model.Message msg : transcriptService.getMessages()) {
-            messages.getItems().add(msg.getSenderId() + ": " + msg.getContent());
+            messages.getItems().add(msg.getContent());
         }
     }
 }
