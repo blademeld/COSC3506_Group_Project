@@ -73,11 +73,7 @@ public class MainAppController {
             }
         });
 
-        try {
-            localProfile = keyManager.generateProfile("peer");
-        } catch (Exception e) {
-            transcriptDisplay.appendText("[Error] Could not generate keypair.\n");
-        }
+        // Keypair is generated in handleConnect() once the username is known
     }
 
     private void updateModeView(String mode) {
@@ -205,12 +201,7 @@ public class MainAppController {
 
                 Platform.runLater(new Runnable() {
                     public void run() {
-                        peerList.getItems().add(displayName);
-                        if ("Manager".equals(mode)) {
-                            messageReciever.setText("Monitoring " + displayName);
-                        } else {
-                            messageReciever.setText("Chatting with " + displayName);
-                        }
+                        messageReciever.setText("Chatting with " + displayName);
                     }
                 });
 
@@ -242,8 +233,7 @@ public class MainAppController {
             messageReciever.setText(ip + ":" + port);
             peerService.connectToPeer(ip, port, peerListener);
         } else {
-            String label = "Manager".equals(mode) ? "[Manager]" : "[Host]";
-            transcriptDisplay.appendText(label + " Listening on port " + port + "...\n");
+            transcriptDisplay.appendText("[Host] Listening on port " + port + "...\n");
             messageReciever.setText("Listening on :" + port);
             peerService.connectToNetwork(port, peerListener);
         }
@@ -295,9 +285,8 @@ public class MainAppController {
     // Shows only messages involving the selected peer (sent or received)
     private void filterTranscriptFor(String selected) {
         if (selected == null) return;
-        String name = selected;
         messages.getItems().clear();
-        for (model.Message msg : peerService.getMessagesFor(name)) {
+        for (model.Message msg : peerService.getMessagesFor(selected)) {
             messages.getItems().add(msg.getContent());
         }
     }
