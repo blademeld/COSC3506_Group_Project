@@ -36,6 +36,7 @@ public class PeerService {
     }
 
     public void disconnectFromNetwork() {
+        server.stop();
         if (connection != null) {
             connection.close();
             connection = null;
