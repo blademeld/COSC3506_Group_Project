@@ -1,3 +1,6 @@
+// NOTE: This controller is no longer referenced by MainApp.fxml.
+// The active controller is controller.MainAppController.
+// Keeping this file for reference only.
 package view;
 
 import java.net.URL;

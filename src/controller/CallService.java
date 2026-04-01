@@ -1,7 +1,6 @@
 package controller;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
@@ -68,7 +67,6 @@ public class CallService extends Thread {
             store.addMessage(msg);
 
             System.out.println("[CallService] Call ended with " + peerId);
-            connection.close();  // Clean up the connection
         }
     }
 

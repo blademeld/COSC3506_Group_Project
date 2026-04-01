@@ -48,6 +48,8 @@ public class MainAppController {
     private Label callLogsLabel;
     @FXML
     private MenuItem openMenuItem;
+    @FXML
+    private Button sendCall;
 
     private final TranscriptStore store = new TranscriptStore();
     private final ManagerService peerService = new ManagerService(store);
@@ -57,7 +59,7 @@ public class MainAppController {
     private final ChallengeService challengeService = new ChallengeService();
     private PeerProfile localProfile;
     private String connectedPeerName = null;
-    private String connectedLocalName = null;
+    private boolean isInCall = false;
 
     @FXML
     public void initialize() {
@@ -80,6 +82,7 @@ public class MainAppController {
             }
         });
 
+        sendCall.setDisable(true);
         // Keypair is generated in handleConnect() once the username is known
     }
 
@@ -218,6 +221,11 @@ public class MainAppController {
 
                 peerService.setConnection(handler);
                 chatService.connect(localId, peerDisplay, handler);
+                Platform.runLater(new Runnable() {
+                    public void run() {
+                        sendCall.setDisable(false);
+                    }
+                });
 
                 handler.startListening(new ConnectionHandler.MessageListener() {
                     public void onMessage(String raw) {
@@ -268,7 +276,30 @@ public class MainAppController {
     }
 
     @FXML
+    private void handleCall() {
+        if (!isInCall) {
+            if (connectedPeerName == null) {
+                log("[Error] Not connected to a peer.");
+                return;
+            }
+            peerService.startCall(connectedPeerName);
+            isInCall = true;
+            sendCall.setText("Hang Up");
+            log("[Call] Call started with " + connectedPeerName);
+        } else {
+            peerService.endCall();
+            isInCall = false;
+            sendCall.setText("Call");
+            log("[Call] Call ended.");
+        }
+    }
+
+    @FXML
     private void handleReset() {
+        if (isInCall) {
+            peerService.endCall();
+            isInCall = false;
+        }
         peerService.disconnectFromNetwork();
         chatService.disconnect();
         connectedPeerName = null;
@@ -276,6 +307,8 @@ public class MainAppController {
         peerList.getItems().clear();
         messages.getItems().clear();
         messageReciever.setText("Message with...");
+        sendCall.setDisable(true);
+        sendCall.setText("Call");
         transcriptDisplay.appendText("Session reset.\n");
     }
 
