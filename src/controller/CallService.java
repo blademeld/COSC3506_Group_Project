@@ -83,7 +83,12 @@ public class CallService extends Thread {
         TargetDataLine microphone = null;
 
         try {
-            // Input and Output streams from the connection
+            // Ensure that connection is initialized properly
+            if (connection == null) {
+                throw new IllegalStateException("Connection is not initialized");
+            }
+
+            // Get input and output streams from the connection
             InputStream in = connection.getInputStream();
             OutputStream out = connection.getOutputStream();
 
@@ -134,7 +139,6 @@ public class CallService extends Thread {
                 if (speakers != null) {
                     speakers.close();
                 }
-                // No need for socket cleanup here as it's handled in ConnectionHandler
             } catch (IOException e) {
                 e.printStackTrace();
             }
