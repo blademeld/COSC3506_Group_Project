@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
@@ -24,9 +25,17 @@ public class CallService extends Thread {
     private String localId;
     private String peerId;
 
+    public CallService(){
+        this.store = new TranscriptStore();
+    }
+
     // Constructor that accepts TranscriptStore
     public CallService(TranscriptStore store) {
         this.store = store;
+    }
+
+    public void connect(String peerId) {
+        this.peerId = peerId;
     }
 
     // Connects to the peer and initializes the connection
@@ -36,6 +45,10 @@ public class CallService extends Thread {
         this.connection = connection;
         this.isActive = true;
         System.out.println("[CallService] Connecting audio call with " + peerId);
+    }
+
+    public void disconnect(String peerId) {
+        disconnect();
     }
 
     // Disconnects the call, logs the message, and clears state
@@ -91,6 +104,7 @@ public class CallService extends Thread {
             // Get input and output streams from the connection
             InputStream in = connection.getInputStream();
             OutputStream out = connection.getOutputStream();
+            // Socket socket = connection.getSocket();
 
             // Audio format configuration
             AudioFormat format = new AudioFormat(16000, 8, 2, true, true);
@@ -130,18 +144,6 @@ public class CallService extends Thread {
             }
         } catch (IOException | LineUnavailableException e) {
             e.printStackTrace();
-        } finally {
-            // Clean up resources in the finally block to avoid leaks
-            try {
-                if (microphone != null) {
-                    microphone.close();
-                }
-                if (speakers != null) {
-                    speakers.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

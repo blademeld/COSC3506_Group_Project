@@ -16,7 +16,7 @@ public class ChatService {
     public ChatService(TranscriptStore store) {
         this.store = store;
     }
-
+    
     public void connect(String localId, String peerId, ConnectionHandler connection) {
         this.localId = localId;
         this.peerId = peerId;

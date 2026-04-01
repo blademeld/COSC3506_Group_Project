@@ -36,6 +36,10 @@ public class ConnectionHandler {
         out.println(message);
     }
 
+    public Socket getSocket() {
+        return socket;
+    }
+
     // Retrieve the InputStream of the socket
     public InputStream getInputStream() throws IOException {
         return socket.getInputStream();
