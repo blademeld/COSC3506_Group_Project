@@ -10,9 +10,12 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
+import model.CallRecord;
 import model.PeerProfile;
 import model.TranscriptStore;
 import java.io.File;
+import java.util.Date;
+import java.util.UUID;
 
 public class MainAppController {
 
@@ -60,6 +63,7 @@ public class MainAppController {
     private PeerProfile localProfile;
     private String connectedPeerName = null;
     private boolean isInCall = false;
+    private CallRecord currentCall = null;
 
     @FXML
     public void initialize() {
@@ -130,6 +134,7 @@ public class MainAppController {
                 messageContent.setDisable(true);
                 openMenuItem.setDisable(false);
                 refreshPeerList();
+                refreshCallLogs();
                 messages.getItems().clear();
                 break;
         }
@@ -282,11 +287,18 @@ public class MainAppController {
                 log("[Error] Not connected to a peer.");
                 return;
             }
+            String localId = peerUsername.getText().trim();
+            currentCall = new CallRecord(UUID.randomUUID().toString(), localId, connectedPeerName, new Date(), null);
+            store.addCallRecord(currentCall); // add call record to transcript store
             peerService.startCall(connectedPeerName);
             isInCall = true;
             sendCall.setText("Hang Up");
             log("[Call] Call started with " + connectedPeerName);
         } else {
+            if (currentCall != null) {
+                currentCall.endCall(new Date());
+                currentCall = null;
+            }
             peerService.endCall();
             isInCall = false;
             sendCall.setText("Call");
@@ -320,6 +332,15 @@ public class MainAppController {
         });
     }
 
+    private void refreshCallLogs() {
+        callRecords.getItems().clear();
+        for (CallRecord record : peerService.getActiveCalls()) {
+            String status = record.getEndTime() != null ? "ended" : "ongoing";
+            String entry = record.getSenderId() + " called " + record.getReceiverId() + " (" + status + ")";
+            callRecords.getItems().add(entry);
+        }
+    }
+
     private void refreshTranscriptList() {
         messages.getItems().clear();
         for (model.Message msg : transcriptService.getMessages()) {
@@ -329,12 +350,14 @@ public class MainAppController {
 
     // Shows only messages involving the selected peer (sent or received)
     private void filterTranscriptFor(String selected) {
-        if (selected == null) return;
+        if (selected == null)
+            return;
         String name = selected.replaceFirst("^[🟢⚫] ", "");
         messages.getItems().clear();
         for (model.Message msg : peerService.getMessagesFor(name)) {
             messages.getItems().add(msg.getContent());
         }
+        refreshCallLogs();
     }
 
     private void refreshPeerList() {
