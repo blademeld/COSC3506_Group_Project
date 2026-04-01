@@ -52,7 +52,7 @@
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MainAppController">
+<VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.MainAppController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -125,7 +125,7 @@
                         <TextField fx:id="messageContent" layoutY="519.0" prefHeight="26.0" prefWidth="611.0" promptText="Message here..." />
                         <ComboBox fx:id="peerStatus" layoutX="449.0" layoutY="1.0" prefHeight="26.0" prefWidth="220.0" promptText="Available"></ComboBox>
                         <TextField fx:id="peerUsername" layoutX="289.0" layoutY="1.0" promptText="My Username..." />
-                        <Button id="sendCall" layoutX="234.0" layoutY="1.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="55.0" text="Call" />
+                        <Button fx:id="sendCall" layoutX="234.0" layoutY="1.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="55.0" text="Call" onAction="#handleCall" />
               </children>
             </AnchorPane>
           </content>

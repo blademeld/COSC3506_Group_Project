@@ -2,7 +2,9 @@ package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -32,6 +34,16 @@ public class ConnectionHandler {
     // Send a line of text to the peer
     public void send(String message) {
         out.println(message);
+    }
+
+    // Retrieve the InputStream of the socket
+    public InputStream getInputStream() throws IOException {
+        return socket.getInputStream();
+    }
+
+    // Retrieve the OutputStream of the socket
+    public OutputStream getOutputStream() throws IOException {
+        return socket.getOutputStream();
     }
 
     // Read one line — used during auth handshake before chat starts

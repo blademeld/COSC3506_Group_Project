@@ -6,10 +6,13 @@ public class PeerService {
     private ConnectionHandler connection;
     private final TcpServer server;
     private final TcpClient client;
+    private final CallService callService;
+    private String currentCallPeer;
 
     public PeerService() {
         server = new TcpServer();
         client = new TcpClient();
+        callService = new CallService();
     }
 
     // Start listening for one incoming peer connection (Host mode)
@@ -40,10 +43,20 @@ public class PeerService {
     }
 
     public void startCall(String peerId) {
-        // TODO Phase 6: initiate call with peerId
+        currentCallPeer = peerId;
+        if (connection != null) {
+            connection.send("CALL_REQUEST:" + peerId);
+        }
+        callService.connect(peerId);
     }
 
     public void endCall() {
-        // TODO Phase 6: terminate current call
+        if (currentCallPeer != null) {
+            if (connection != null) {
+                connection.send("CALL_END:" + currentCallPeer);
+            }
+            callService.disconnect(currentCallPeer);
+            currentCallPeer = null;
+        }
     }
 }
