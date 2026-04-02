@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+// TranscriptService is used to load and save transcripts to a file
 public class TranscriptService {
 
     private final TranscriptStore store;
@@ -34,22 +35,25 @@ public class TranscriptService {
             Set<String> senders = new LinkedHashSet<>();
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!line.startsWith("[")) continue;
+                if (!line.startsWith("["))
+                    continue; // if line does not start with [, continue
                 int closeBracket = line.indexOf("]");
-                if (closeBracket == -1) continue;
+                if (closeBracket == -1)
+                    continue; // if close bracket is not found, continue
                 String rest = line.substring(closeBracket + 2);
                 int colonIndex = rest.indexOf(": ");
-                if (colonIndex == -1) continue;
+                if (colonIndex == -1)
+                    continue; // if colon is not found, continue
                 String senderId = rest.substring(0, colonIndex);
                 String content = rest.substring(colonIndex + 2);
-                parsed.add(new String[]{senderId, content});
+                parsed.add(new String[] { senderId, content }); // add sender id and content to parsed list
                 senders.add(senderId);
             }
             reader.close();
             String[] participants = senders.toArray(new String[0]);
             for (String[] entry : parsed) {
-                String senderId = entry[0];
-                String content = entry[1];
+                String senderId = entry[0]; // get sender id from parsed list
+                String content = entry[1]; // get content from parsed list
                 String receiverId = "";
                 for (String p : participants) {
                     if (!p.equals(senderId)) {

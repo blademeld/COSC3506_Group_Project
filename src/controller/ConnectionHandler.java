@@ -14,6 +14,7 @@ public class ConnectionHandler {
 
     public interface ConnectListener {
         void onConnected(ConnectionHandler handler);
+
         void onError(String message);
     }
 
@@ -76,6 +77,10 @@ public class ConnectionHandler {
     }
 
     public void close() {
-        try { socket.close(); } catch (IOException e) { /* ignore */ }
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // do nothing
+        }
     }
 }
