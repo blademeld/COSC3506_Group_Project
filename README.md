@@ -1,7 +1,7 @@
 # COSC3506: Course Project (Group 3)
 
 ## Project Description
-For our project, we chose to go with the **Peer-to-peer chat application**. This application allows users on the same network to communicate directly with each other through a dedicated IP socket, with no central server required. A user hosts a session by entering a port to listen on, and a Peer can connect to that Host using their IP address + port. Once the connection is established, users can send messages to each other in real time. 
+For our project, we chose to go with the **Peer-to-peer chat application**. This application allows users on the same network to communicate directly with each other through a dedicated TCP socket, with no central server required. A user hosts a session by entering a port to listen on, and a Peer can connect to that Host using their IP address + port. Once the connection is established, users can send messages to each other in real time. 
 
 To securely identify users, an RSA challenge-response authentication handshake is performed before the session is established. The flow is as follows when a connection attempt is made:
 - Each user generates an RSA keypair, 
