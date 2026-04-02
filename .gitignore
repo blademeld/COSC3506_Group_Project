@@ -1,6 +1,7 @@
 #directories
 .vscode/
 lib/
+out/
 
 #files
 *.class
