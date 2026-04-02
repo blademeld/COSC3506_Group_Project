@@ -64,6 +64,10 @@ public class MainAppController {
     private String connectedPeerName = null;
     private boolean isInCall = false;
     private CallRecord currentCall = null;
+    private CallService currentCallService = null;
+    private ConnectionHandler activeHandler = null;
+    private final TcpServer audioServer = new TcpServer();
+    private int chatPort = 0;
 
     @FXML
     public void initialize() {
@@ -161,7 +165,7 @@ public class MainAppController {
         String localId = peerUsername.getText().trim();
 
         if (localId.isEmpty()) {
-            transcriptDisplay.appendText("[Error] Please enter your username before connecting.\n");
+            log("[Error] Please enter your username before connecting.");
             return;
         }
 
@@ -169,13 +173,13 @@ public class MainAppController {
             localProfile = keyManager.generateProfile(localId);
             peerService.setProfile(localProfile);
         } catch (Exception e) {
-            transcriptDisplay.appendText("[Error] Could not generate keypair.\n");
+            log("[Error] Could not generate keypair.");
             return;
         }
 
         boolean needsIp = "Connect".equals(mode); // if mode is Connect, then ip is required
         if (mode == null || portStr.isEmpty() || (needsIp && ip.isEmpty())) {
-            transcriptDisplay.appendText("[Error] Please select a mode and enter the required fields.\n");
+            log("[Error] Please select a mode and enter the required fields.");
             return;
         }
 
@@ -183,9 +187,10 @@ public class MainAppController {
         try {
             port = Integer.parseInt(portStr);
         } catch (NumberFormatException e) {
-            transcriptDisplay.appendText("[Error] Port must be a number.\n");
+            log("[Error] Port must be a number.");
             return;
         }
+        chatPort = port;
 
         ChallengeService.AuthLogger authLogger = new ChallengeService.AuthLogger() {
             public void log(String message) {
@@ -218,29 +223,19 @@ public class MainAppController {
                 connectedPeerName = displayName;
                 log("Connected to " + displayName);
 
-                Platform.runLater(new Runnable() {
-                    public void run() {
-                        messageReciever.setText("Chatting with " + displayName);
-                    }
-                });
-
+                activeHandler = handler;
                 peerService.setConnection(handler);
                 chatService.connect(localId, peerDisplay, handler);
                 Platform.runLater(new Runnable() {
                     public void run() {
+                        messageReciever.setText("Chatting with " + displayName);
                         sendCall.setDisable(false);
                     }
                 });
 
                 handler.startListening(new ConnectionHandler.MessageListener() {
                     public void onMessage(String raw) {
-                        chatService.receiveMessage(raw);
-                        Platform.runLater(new Runnable() {
-                            public void run() {
-                                transcriptDisplay.appendText(raw + "\n");
-                                refreshTranscriptList();
-                            }
-                        });
+                        handleIncomingMessage(raw);
                     }
                 });
 
@@ -253,14 +248,55 @@ public class MainAppController {
         };
 
         if ("Connect".equals(mode)) {
-            transcriptDisplay.appendText("[Connect] Connecting to " + ip + ":" + port + "...\n");
+            log("[Connect] Connecting to " + ip + ":" + port + "...");
             messageReciever.setText(ip + ":" + port);
             peerService.connectToPeer(ip, port, peerListener);
         } else {
-            transcriptDisplay.appendText("[Host] Listening on port " + port + "...\n");
+            log("[Host] Listening on port " + port + "...");
             messageReciever.setText("Listening on :" + port);
             peerService.connectToNetwork(port, peerListener);
         }
+    }
+
+    // Handles incoming messages from the peer
+    private void handleIncomingMessage(String raw) {
+        if (raw.startsWith("CALL_REQUEST:")) {
+            try {
+                int audioPort = Integer.parseInt(raw.substring("CALL_REQUEST:".length()).trim());
+                String callerIp = activeHandler.getSocket().getInetAddress().getHostAddress();
+                String localId = peerUsername.getText().trim();
+                TcpClient audioClient = new TcpClient();
+                audioClient.connect(callerIp, audioPort, new ConnectionHandler.ConnectListener() {
+                    public void onConnected(ConnectionHandler audioHandler) {
+                        currentCallService = new CallService(store);
+                        currentCallService.connect(localId, connectedPeerName, audioHandler);
+                        currentCallService.start();
+                        log("[Call] Incoming call connected.");
+                    }
+                    public void onError(String msg) {
+                        log("[Call] Audio connection failed: " + msg);
+                    }
+                });
+            } catch (NumberFormatException e) {
+                log("[Call] Invalid call request.");
+            }
+            return;
+        }
+        if (raw.startsWith("CALL_END:")) {
+            if (currentCallService != null) {
+                currentCallService.disconnect();
+                currentCallService = null;
+            }
+            log("[Call] Call ended by peer.");
+            return;
+        }
+        chatService.receiveMessage(raw);
+        Platform.runLater(new Runnable() {
+            public void run() {
+                transcriptDisplay.appendText(raw + "\n");
+                refreshTranscriptList();
+            }
+        });
     }
 
     @FXML
@@ -288,18 +324,37 @@ public class MainAppController {
                 return;
             }
             String localId = peerUsername.getText().trim();
+            int audioPort = chatPort + 1;
             currentCall = new CallRecord(UUID.randomUUID().toString(), localId, connectedPeerName, new Date(), null);
-            store.addCallRecord(currentCall); // add call record to transcript store
-            peerService.startCall(connectedPeerName);
+            store.addCallRecord(currentCall);
+
+            audioServer.listen(audioPort, new ConnectionHandler.ConnectListener() {
+                public void onConnected(ConnectionHandler audioHandler) {
+                    currentCallService = new CallService(store);
+                    currentCallService.connect(localId, connectedPeerName, audioHandler);
+                    currentCallService.start();
+                    log("[Call] Audio connected.");
+                }
+                public void onError(String msg) {
+                    log("[Call] Audio error: " + msg);
+                }
+            });
+
+            peerService.sendMessage("CALL_REQUEST:" + audioPort);
             isInCall = true;
             sendCall.setText("Hang Up");
-            log("[Call] Call started with " + connectedPeerName);
+            log("[Call] Calling " + connectedPeerName + "...");
         } else {
             if (currentCall != null) {
                 currentCall.endCall(new Date());
                 currentCall = null;
             }
-            peerService.endCall();
+            if (currentCallService != null) {
+                currentCallService.disconnect();
+                currentCallService = null;
+            }
+            audioServer.stop();
+            peerService.sendMessage("CALL_END:");
             isInCall = false;
             sendCall.setText("Call");
             log("[Call] Call ended.");
@@ -309,7 +364,12 @@ public class MainAppController {
     @FXML
     private void handleReset() {
         if (isInCall) {
-            peerService.endCall();
+            if (currentCallService != null) {
+                currentCallService.disconnect();
+                currentCallService = null;
+            }
+            currentCall = null;
+            audioServer.stop();
             isInCall = false;
         }
         peerService.disconnectFromNetwork();
@@ -368,9 +428,7 @@ public class MainAppController {
             String name = peer.getUsername();
             boolean online = activeSession && (name.equals(connectedPeerName) || name.equals(localName));
             String entry = (online ? "🟢 " : "⚫ ") + name;
-            if (!peerList.getItems().contains(entry)) {
-                peerList.getItems().add(entry);
-            }
+            peerList.getItems().add(entry);
         }
     }
 
