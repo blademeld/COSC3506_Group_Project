@@ -90,58 +90,72 @@ public class CallService extends Thread {
 
     @Override
     public void run() {
-        SourceDataLine speakers = null;
-        TargetDataLine microphone = null;
+        if (connection == null) {
+            System.out.println("[CallService] Connection is not initialized");
+            return;
+        }
+
+        AudioFormat format = new AudioFormat(44100, 16, 1, true, false);
 
         try {
-            // Ensure that connection is initialized properly
-            if (connection == null) {
-                throw new IllegalStateException("Connection is not initialized");
-            }
-
-            // Get input and output streams from the connection
             InputStream in = connection.getInputStream();
             OutputStream out = connection.getOutputStream();
-            // Socket socket = connection.getSocket();
 
-            // Audio format configuration
-            AudioFormat format = new AudioFormat(44100, 16, 1, true, false);
-
-            // Setup speakers (output audio)
+            // Speaker: plays audio received from peer
             DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format);
-            speakers = (SourceDataLine) AudioSystem.getLine(speakerInfo);
+            SourceDataLine speakers = (SourceDataLine) AudioSystem.getLine(speakerInfo);
             speakers.open(format);
             speakers.start();
 
-            // Setup microphone (input audio)
+            // Microphone: captures local audio and sends to peer
             DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, format);
-            microphone = (TargetDataLine) AudioSystem.getLine(micInfo);
+            TargetDataLine microphone = (TargetDataLine) AudioSystem.getLine(micInfo);
             microphone.open(format);
             microphone.start();
 
-            // Buffer arrays
-            byte[] bufferForOutput = new byte[1024];
-            byte[] bufferForInput = new byte[1024];
-
-            int bytesReadFromInput;
-            int bytesReadFromMicrophone;
-
-            // Continuous audio transmission while the call is active
-            while (isActive) {
-                // Read from the input stream (audio from the peer)
-                bytesReadFromInput = in.read(bufferForInput);
-                if (bytesReadFromInput > 0) {
-                    speakers.write(bufferForInput, 0, bytesReadFromInput);
+            // Thread 1: mic -> peer (send)
+            Thread sendThread = new Thread(new Runnable() {
+                public void run() {
+                    byte[] buf = new byte[1024];
+                    try {
+                        while (isActive) {
+                            int n = microphone.read(buf, 0, buf.length);
+                            if (n > 0) {
+                                out.write(buf, 0, n);
+                                out.flush();
+                            }
+                        }
+                    } catch (IOException e) {
+                        // call ended or connection dropped
+                    } finally {
+                        microphone.stop();
+                        microphone.close();
+                    }
                 }
+            });
+            sendThread.setDaemon(true);
+            sendThread.start();
 
-                // Read from the microphone and send to peer
-                bytesReadFromMicrophone = microphone.read(bufferForOutput, 0, bufferForOutput.length);
-                if (bytesReadFromMicrophone > 0) {
-                    out.write(bufferForOutput, 0, bytesReadFromMicrophone);
+            // Thread 2: peer -> speakers (receive), runs on this thread
+            byte[] buf = new byte[1024];
+            try {
+                while (isActive) {
+                    int n = in.read(buf);
+                    if (n > 0) {
+                        speakers.write(buf, 0, n);
+                    }
                 }
+            } catch (IOException e) {
+                // call ended or connection dropped
+            } finally {
+                speakers.stop();
+                speakers.close();
             }
-        } catch (IOException | LineUnavailableException e) {
-            e.printStackTrace();
+
+        } catch (LineUnavailableException e) {
+            System.out.println("[CallService] Audio device error: " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("[CallService] Stream error: " + e.getMessage());
         }
     }
 }
