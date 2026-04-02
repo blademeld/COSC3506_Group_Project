@@ -105,7 +105,7 @@ public class CallService extends Thread {
             // Socket socket = connection.getSocket();
 
             // Audio format configuration
-            AudioFormat format = new AudioFormat(16000, 8, 2, true, true);
+            AudioFormat format = new AudioFormat(44100, 16, 1, true, false);
 
             // Setup speakers (output audio)
             DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, format);
