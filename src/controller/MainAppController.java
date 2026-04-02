@@ -173,7 +173,7 @@ public class MainAppController {
             return;
         }
 
-        boolean needsIp = "Connect".equals(mode);
+        boolean needsIp = "Connect".equals(mode); // if mode is Connect, then ip is required
         if (mode == null || portStr.isEmpty() || (needsIp && ip.isEmpty())) {
             transcriptDisplay.appendText("[Error] Please select a mode and enter the required fields.\n");
             return;
