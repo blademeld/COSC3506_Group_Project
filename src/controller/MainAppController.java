@@ -157,6 +157,7 @@ public class MainAppController {
         callLogsLabel.setManaged(visible);
     }
 
+    // Handles connecting to a peer
     @FXML
     private void handleConnect() {
         String ip = hostIP.getText().trim();
@@ -204,42 +205,7 @@ public class MainAppController {
 
         ConnectionHandler.ConnectListener peerListener = new ConnectionHandler.ConnectListener() {
             public void onConnected(ConnectionHandler handler) {
-                log("Establishing cryptographic identity...");
-
-                String peerDisplay;
-                if ("Connect".equals(mode)) {
-                    peerDisplay = challengeService.authenticateAsClient(handler, localProfile, localId, authLogger);
-                } else {
-                    peerDisplay = challengeService.authenticateAsHost(handler, localProfile, localId, authLogger);
-                }
-
-                if (peerDisplay == null) {
-                    log("[Error] Authentication failed. Connection closed.");
-                    handler.close();
-                    return;
-                }
-
-                final String displayName = peerDisplay;
-                connectedPeerName = displayName;
-                log("Connected to " + displayName);
-
-                activeHandler = handler;
-                peerService.setConnection(handler);
-                chatService.connect(localId, peerDisplay, handler);
-                Platform.runLater(new Runnable() {
-                    public void run() {
-                        messageReciever.setText("Chatting with " + displayName);
-                        sendCall.setDisable(false);
-                    }
-                });
-
-                handler.startListening(new ConnectionHandler.MessageListener() {
-                    public void onMessage(String raw) {
-                        handleIncomingMessage(raw);
-                    }
-                });
-
-                log("[" + mode + "] Connected.");
+                onPeerConnected(handler, mode, localId, authLogger);
             }
 
             public void onError(String message) {
@@ -256,6 +222,47 @@ public class MainAppController {
             messageReciever.setText("Listening on :" + port);
             peerService.connectToNetwork(port, peerListener);
         }
+    }
+
+    // Runs after TCP session is created
+    private void onPeerConnected(ConnectionHandler handler, String mode, String localId,
+            ChallengeService.AuthLogger authLogger) {
+        log("Establishing cryptographic identity...");
+        String peerDisplay;
+        if ("Connect".equals(mode)) {
+            peerDisplay = challengeService.authenticateAsClient(handler, localProfile, localId, authLogger);
+        } else {
+            peerDisplay = challengeService.authenticateAsHost(handler, localProfile, localId, authLogger);
+        }
+
+        if (peerDisplay == null) {
+            log("[Error] Authentication failed. Connection closed.");
+            handler.close();
+            return;
+        }
+
+        connectedPeerName = peerDisplay;
+        log("Connected to " + peerDisplay);
+
+        activeHandler = handler;
+        peerService.setConnection(handler);
+        chatService.connect(localId, peerDisplay, handler);
+
+        final String displayName = peerDisplay;
+        Platform.runLater(new Runnable() {
+            public void run() {
+                messageReciever.setText("Chatting with " + displayName);
+                sendCall.setDisable(false);
+            }
+        });
+
+        handler.startListening(new ConnectionHandler.MessageListener() {
+            public void onMessage(String raw) {
+                handleIncomingMessage(raw);
+            }
+        });
+
+        log("[" + mode + "] Connected.");
     }
 
     // Handles incoming messages from the peer
@@ -296,6 +303,7 @@ public class MainAppController {
             public void run() {
                 transcriptDisplay.appendText(raw + "\n");
                 refreshTranscriptList();
+                refreshPeerList();
             }
         });
     }

@@ -1,7 +1,6 @@
 package controller;
 
 import model.PeerProfile;
-
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Signature;
@@ -9,16 +8,15 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.UUID;
 
-// Handles RSA challenge-response authentication and username exchange between peers
 public class ChallengeService {
 
-    // Simple interface so auth steps can log back to the UI
+    // Allows auth steps to send log messages back to the UI
     public interface AuthLogger {
         void log(String message);
     }
 
-    // Run by the Host — returns "Name (keyId)" of the connecting peer, or null if
-    // auth fails
+    // Called by the Host side — sends a challenge, verifies the peer's signature,
+    // then shares its own identity
     public String authenticateAsHost(ConnectionHandler handler, PeerProfile profile, String localUsername,
             AuthLogger logger) {
         try {
@@ -69,12 +67,14 @@ public class ChallengeService {
         }
     }
 
-    // Run by the Client — returns "Name (keyId)" of the host, or null if auth fails
+    // Called by the Client side — receives the challenge, signs it, then reads the
+    // host's identity
     public String authenticateAsClient(ConnectionHandler handler, PeerProfile profile, String localUsername,
             AuthLogger logger) {
         try {
             logger.log("Waiting for challenge from host...");
             String challengeLine = handler.readLine();
+
             if (challengeLine == null || !challengeLine.startsWith("CHALLENGE:"))
                 return null;
 
@@ -101,11 +101,13 @@ public class ChallengeService {
             String hostUsernameLine = handler.readLine();
             String hostPubKeyLine = handler.readLine();
 
-            String hostUsername = hostUsernameLine != null ? hostUsernameLine.replace("USERNAME:", "") : "host";
+            String hostUsername = hostUsernameLine.replace("USERNAME:", "");
 
+            // Decode the host's public key and generate a short ID
             String keyId = "unknown";
             if (hostPubKeyLine != null) {
-                byte[] hostKeyBytes = Base64.getDecoder().decode(hostPubKeyLine.replace("PUBKEY:", ""));
+                String hostKeyEncoded = hostPubKeyLine.replace("PUBKEY:", "");
+                byte[] hostKeyBytes = Base64.getDecoder().decode(hostKeyEncoded);
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                 PublicKey hostPublicKey = keyFactory.generatePublic(new X509EncodedKeySpec(hostKeyBytes));
                 keyId = shortId(hostPublicKey);
@@ -120,11 +122,13 @@ public class ChallengeService {
         }
     }
 
+    // Helper method to generate short ID from a public key for identification
     public static String shortId(PublicKey publicKey) {
         try {
             java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(publicKey.getEncoded());
-            return Base64.getEncoder().encodeToString(hash).substring(0, 8);
+            String encoded = Base64.getEncoder().encodeToString(hash);
+            return encoded.substring(0, 8);
         } catch (Exception e) {
             return "unknown";
         }
