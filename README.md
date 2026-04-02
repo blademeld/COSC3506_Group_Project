@@ -9,7 +9,7 @@ To securely identify users, an RSA challenge-response authentication handshake i
 - The Peer signs the challenge string using their public key,
 - The host verifies the signature using the Peer's public key. 
 
-If successful, the connection then gets established. A unique short ID is then generated from their public key, used to securely identify the Peer and the Host. 
+If successful, the connection then gets established. A unique short ID is then generated from their public key, used to securely identify the Peer and the Host. Our application also has audio calling functionality. Once a chat session is established between users, they have the option of clicking on "Call" to start a live audio call and clicking on "End" to cancel it. The audio is streamed on a separate TCP connection, allowing for users to continue chatting through text while also being in a call.
 
 ## Implementation 
 
