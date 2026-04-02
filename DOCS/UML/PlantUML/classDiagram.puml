@@ -1,5 +1,13 @@
 @startuml
 
+class TcpClient {
+  + connect(ip, port, listener)
+}
+
+class TcpServer {
+  + listen(port, listener)
+}
+
 class PeerClient {
   - peerId: String
   - publicKey: String
@@ -17,14 +25,6 @@ class PeerService {
   + endCall()
 }
 
-class ManagerClient {
-  - privateKey: String
-  + getActivePeers()
-  + getActiveCalls()
-  + requestTranscript(peerId)
-  + requestCallLogs(peerId)
-}
-
 class ManagerService {
   + generatePeer()
   + validatePeer()
@@ -32,6 +32,21 @@ class ManagerService {
   + getActiveCalls()
   + requestTranscript(peerId)
   + requestCallLogs(peerId)
+}
+
+class ChallengeService {
+  + authenticateAsHost(handler, profile, localUsername, logger)
+  + authenticateAsClient(handler, profile, localUsername, logger)
+  + shortId(publicKey)
+}
+
+class KeyManager {
+  + generaterProfile(username)
+}
+
+class ConnectionHandler {
+  + send(message)
+  + socket()
 }
 
 class Message {
@@ -75,20 +90,24 @@ class TranscriptStore {
 }
 
 ' Inheritance
-ManagerClient --|> PeerClient
 ManagerService --|> PeerService
+ManagerService --|> TcpServer
 
 ' Client-Service relationships
 PeerClient --> PeerService
-ManagerClient --> ManagerService
+PeerClient --|> TcpClient
 
 ' Peer communication
 PeerService --> ChatService
 PeerService --> CallService
 PeerService --> Message
+PeerService --> ChallengeService : uses
+PeerService --> ConnectionHandler : has
 
 ChatService --> Message
 CallService --> CallRecord : generates
+
+ChallengeService --> KeyManager : uses
 
 ' Transcript storage
 ChatService --> TranscriptStore : stores
@@ -99,6 +118,7 @@ TranscriptStore "1" *-- "*" Message
 TranscriptStore "1" *-- "*" CallRecord
 
 ' Manager monitoring
+ManagerService --> ChallengeService : uses
 ManagerService --> TranscriptService : fetches
 ManagerService ..> PeerClient : monitors
 
