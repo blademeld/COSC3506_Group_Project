@@ -82,6 +82,7 @@ public class MainAppController {
             }
         });
 
+        // Handle send message when enter is pressed
         messageContent.setOnKeyPressed(new javafx.event.EventHandler<javafx.scene.input.KeyEvent>() {
             public void handle(javafx.scene.input.KeyEvent event) {
                 if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
@@ -144,8 +145,7 @@ public class MainAppController {
         }
     }
 
-    // The super panel shows the Host's view: peer list on the left + message
-    // history sidebar
+    // Set the visibility of the Manager panel
     private void setSuperPanelVisible(boolean visible) {
         messages.setVisible(visible);
         messages.setManaged(visible);
@@ -273,6 +273,7 @@ public class MainAppController {
                         currentCallService.start();
                         log("[Call] Incoming call connected.");
                     }
+
                     public void onError(String msg) {
                         log("[Call] Audio connection failed: " + msg);
                     }
@@ -299,6 +300,7 @@ public class MainAppController {
         });
     }
 
+    // Handles sending messages to the peer
     @FXML
     private void handleSend() {
         String msg = messageContent.getText().trim();
@@ -335,6 +337,7 @@ public class MainAppController {
                     currentCallService.start();
                     log("[Call] Audio connected.");
                 }
+
                 public void onError(String msg) {
                     log("[Call] Audio error: " + msg);
                 }
