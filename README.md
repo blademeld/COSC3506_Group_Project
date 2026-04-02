@@ -17,5 +17,5 @@ The system was implemented using Java, and with JavaFX used for the graphical us
 
 ## Running The App
 ```bash
-java --module-path /path/to/javafx/lib --add-modules javafx.controls,javafx.fxml -jar PeerLink.jar
+java --module-path /path/to/javafx/lib --add-modules javafx.controls,javafx.fxml -jar COSC3506Project.jar
 ```
