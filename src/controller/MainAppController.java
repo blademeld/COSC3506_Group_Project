@@ -392,7 +392,7 @@ public class MainAppController {
         messageReciever.setText("Message with...");
         sendCall.setDisable(true);
         sendCall.setText("Call");
-        transcriptDisplay.appendText("Session reset.\n");
+        log("Session reset.");
     }
 
     private void log(final String message) {
@@ -451,7 +451,7 @@ public class MainAppController {
         File file = chooser.showSaveDialog(transcriptDisplay.getScene().getWindow());
         if (file != null) {
             transcriptService.saveToFile(file.getAbsolutePath());
-            transcriptDisplay.appendText("[Saved] Transcript saved to " + file.getName() + "\n");
+            log("[Saved] Transcript saved to " + file.getName());
         }
     }
 
@@ -463,7 +463,7 @@ public class MainAppController {
         File file = chooser.showOpenDialog(transcriptDisplay.getScene().getWindow());
         if (file != null) {
             transcriptService.loadFromFile(file.getAbsolutePath());
-            transcriptDisplay.appendText("[Loaded] Imported transcript from " + file.getName() + "\n");
+            log("[Loaded] Imported transcript from " + file.getName());
             refreshPeerList();
             refreshTranscriptList();
         }
